@@ -371,7 +371,7 @@ export default function CheckoutPage() {
                 </button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  This is a simulated payment for university project
+                  By proceeding, you agree to our Terms of Service and Privacy Policy.
                 </p>
               </form>
             </div>

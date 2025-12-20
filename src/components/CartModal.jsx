@@ -6,6 +6,9 @@ export default function CartModal({ isOpen, onClose, cart, updateCartItem, remov
   if (!isOpen) return null;
 
   const hasItems = cart && cart.total_items > 0;
+  const handleCheckout = () => {
+    window.location.href = '/checkout';
+  }
 
   return (
     <AnimatePresence>
@@ -173,7 +176,10 @@ export default function CartModal({ isOpen, onClose, cart, updateCartItem, remov
                 </div>
 
                 {/* Checkout Button */}
-                <button className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 group">
+                <button 
+                  onClick={handleCheckout}
+                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 group"
+                >
                   <span>Proceed to Checkout</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>

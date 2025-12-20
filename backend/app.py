@@ -15,6 +15,7 @@ from blueprints.members.session_cart import session_cart_bp
 from blueprints.trainer.sessions import session_bp
 from blueprints.members.checkout import checkout_bp
 from blueprints.members.membership import membership_bp
+from blueprints.notifications.notifications_bp import notifications_bp
 
 app = Flask(__name__)
 
@@ -92,6 +93,7 @@ app.register_blueprint(session_bp)
 app.register_blueprint(session_cart_bp)
 app.register_blueprint(checkout_bp)
 app.register_blueprint(membership_bp)
+app.register_blueprint(notifications_bp)
 
 if __name__ == "__main__":
     with app.app_context():
