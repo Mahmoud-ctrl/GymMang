@@ -52,7 +52,6 @@ const Dashboard = () => {
         { id: 'classes', label: 'Classes', icon: Users },
         { id: 'bookings', label: 'Bookings', icon: Calendar },
         { id: 'my-membership', label: 'My Membership', icon: Receipt },
-        { id: 'bmi-calculator', label: 'BMI Calculator', icon: Calculator },
         { id: 'profile', label: 'Profile', icon: User },
       ],
       Trainer: [
@@ -162,8 +161,6 @@ const Dashboard = () => {
           return <BookingsPage />;
         case 'my-membership':
           return <MembershipPage />;
-        case 'bmi-calculator':
-          return <BMICalculator />;
         case 'profile':
           return <PlaceholderContent title="Profile" />;
         default:
@@ -196,6 +193,9 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* BMI Calculator - Only for Members on all pages */}
+      {user.role === 'Member' && <BMICalculator />}
+
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
@@ -293,9 +293,7 @@ const Dashboard = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100 relative">
-                <NotificationBell />
-              </button>
+              <NotificationBell />
               <div className="relative" ref={dropDownRef}>
                 <button
                   className="hidden sm:flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors border border-gray-200"
