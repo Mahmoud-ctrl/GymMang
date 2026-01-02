@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Dumbbell, Search, Filter, X, ChevronLeft, ChevronRight, 
-  Eye, Tag, Settings, Wrench, ShieldCheck, Activity 
+  Eye, Tag, Settings, Wrench, ShieldCheck, Activity,
+  Star, MessageSquare, User, LogIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Toast } from '../../components/Toast';
+import RatingModal from '../../components/RatingModal'; //
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -54,7 +57,45 @@ export default function EquipmentPage() {
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  // Ratings & Reviews State
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [notification, setNotification] = useState(null);
+
   const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // --- Auth Check Helper ---
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setShowLoginPrompt(true);
+      return false;
+    }
+    return true;
+  };
+
+  // --- Fetch Reviews ---
+  const fetchReviews = async (equipmentId) => {
+    try {
+      setReviewsLoading(true);
+      const response = await fetch(`${API_URL}/shop/equipments/${equipmentId}/ratings?per_page=50`); //
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data.ratings);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   const fetchEquipments = async () => {
     try {
@@ -67,7 +108,7 @@ export default function EquipmentPage() {
       if (selectedCategory) params.append('category_id', selectedCategory);
       if (searchTerm) params.append('search', searchTerm);
 
-      const response = await fetch(`${API_URL}/shop/equipments?${params}`);
+      const response = await fetch(`${API_URL}/shop/equipments?${params}`); //
 
       if (response.ok) {
         const data = await response.json();
@@ -76,6 +117,7 @@ export default function EquipmentPage() {
       }
     } catch (error) {
       console.error('Error fetching equipments:', error);
+      showNotification('Failed to fetch equipment', 'error');
     } finally {
       setLoading(false);
     }
@@ -104,6 +146,49 @@ export default function EquipmentPage() {
   const openModal = (equipment) => {
     setSelectedEquipment(equipment);
     setActiveImageIndex(0);
+    fetchReviews(equipment.id);
+  };
+
+  // --- Handle Rating Submit ---
+  const handleRateSubmit = async (rating, review) => {
+    if (!selectedEquipment) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/shop/equipments/${selectedEquipment.id}/rate`, { //
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rating, review })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showNotification('Thank you for your rating!', 'success');
+        
+        // Update local state to reflect new average immediately
+        setSelectedEquipment(prev => ({
+          ...prev,
+          rating: data.average_rating // Assuming API returns updated avg
+        }));
+
+        // Update the equipments grid list locally
+        setEquipments(prev => prev.map(e => 
+          e.id === selectedEquipment.id ? { ...e, rating: data.average_rating } : e
+        ));
+
+        // Refresh reviews list
+        fetchReviews(selectedEquipment.id);
+      } else {
+        showNotification(data.error || 'Failed to submit rating', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification('Error submitting rating', 'error');
+    }
   };
 
   const clearFilters = () => {
@@ -120,6 +205,11 @@ export default function EquipmentPage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       
+      {/* Notification Toast */}
+      {notification && (
+        <Toast notification={notification} />
+      )}
+
       {/* Header */}
       <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm/50 backdrop-blur-lg bg-white/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -205,7 +295,7 @@ export default function EquipmentPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="bg-white rounded-2xl p-4 shadow-sm animate-pulse">
-                <div className="bg-gray-200 h-64 rounded-xl mb-4"></div>
+                <div className="bg-gray-200 h-48 rounded-xl mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
@@ -247,6 +337,14 @@ export default function EquipmentPage() {
                 </div>
                 <div className="p-5">
                   <h3 className="font-bold text-gray-900 line-clamp-1 text-lg group-hover:text-indigo-600 transition-colors mb-2">{equipment.name}</h3>
+                  
+                  {/* Rating Stars in Grid */}
+                  <div className="flex items-center gap-1 mb-3">
+                    <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(equipment.rating || 0) ? 'fill-current' : 'text-gray-200'}`} />)}
+                    </div>
+                  </div>
+
                   <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{equipment.description}</p>
                 </div>
               </motion.div>
@@ -267,6 +365,34 @@ export default function EquipmentPage() {
           </div>
         )}
       </div>
+
+      {/* --- Login Required Modal --- */}
+      <AnimatePresence>
+        {showLoginPrompt && (
+           <motion.div 
+            variants={modalBackdrop} initial="hidden" animate="visible" exit="exit"
+            className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+            onClick={() => setShowLoginPrompt(false)}
+           >
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl relative"
+              >
+                 <button onClick={() => setShowLoginPrompt(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+                 <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LogIn className="w-8 h-8 text-red-500" />
+                 </div>
+                 <h3 className="text-xl font-bold text-gray-900 mb-2">Login Required</h3>
+                 <p className="text-gray-500 mb-6">You must be signed in to rate equipment.</p>
+                 <div className="flex gap-3">
+                   <button onClick={() => setShowLoginPrompt(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+                   <button className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-indigo-600 transition-colors">Sign In</button>
+                 </div>
+              </motion.div>
+           </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {selectedEquipment && (
@@ -326,66 +452,136 @@ export default function EquipmentPage() {
                     </div>
                   )}
                 </div>
-                <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col overflow-y-auto bg-white">
-                  
-                  {/* Header Info */}
-                  <div className="mb-6">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wide mb-4">
-                      <Tag className="w-3 h-3" />
-                      {selectedEquipment.category_name}
-                    </span>
-                    
-                    <h2 className="text-3xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-4">
-                      {selectedEquipment.name}
-                    </h2>
-                  </div>
+                <div className="w-full md:w-2/5 flex flex-col overflow-y-auto bg-white scrollbar-thin scrollbar-thumb-gray-200">
+                  <div className="p-8 md:p-12 pb-4">
+                    {/* Header Info */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wide">
+                          <Tag className="w-3 h-3" />
+                          {selectedEquipment.category_name}
+                        </span>
+                        
+                        {/* Rating Display in Modal */}
+                        <div className="flex items-center gap-1">
+                          <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < Math.floor(selectedEquipment.rating || 0) ? 'fill-current' : 'text-gray-200'}`} />
+                            ))}
+                          </div>
+                          <span className="text-sm font-medium text-gray-400 ml-1">
+                            ({selectedEquipment.rating || 0})
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-3xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-4">
+                        {selectedEquipment.name}
+                      </h2>
+                    </div>
 
-                  {/* Description */}
-                  <div className="prose prose-sm text-gray-500 mb-8 overflow-y-auto max-h-48 pr-2 custom-scrollbar">
-                    <p className="leading-relaxed text-base">{selectedEquipment.description}</p>
-                  </div>
+                    {/* Description */}
+                    <div className="prose prose-sm text-gray-500 mb-8">
+                      <p className="leading-relaxed text-base">{selectedEquipment.description}</p>
+                    </div>
 
-                  <div className="grid grid-cols-2 gap-3 mb-8 mt-auto">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Wrench className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">Heavy Duty</p>
-                        <p className="text-gray-500">Commercial Build</p>
+                    {/* Specs Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-8">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Wrench className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">Heavy Duty</p>
+                          <p className="text-gray-500">Commercial Build</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-green-100 p-2 rounded-lg text-green-600"><ShieldCheck className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">Warranty</p>
+                          <p className="text-gray-500">Industry Standard</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-orange-100 p-2 rounded-lg text-orange-600"><Settings className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">Adjustable</p>
+                          <p className="text-gray-500">Multi-Purpose</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><Activity className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">Ergonomic</p>
+                          <p className="text-gray-500">High Performance</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-green-100 p-2 rounded-lg text-green-600"><ShieldCheck className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">Warranty</p>
-                        <p className="text-gray-500">Industry Standard</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-orange-100 p-2 rounded-lg text-orange-600"><Settings className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">Adjustable</p>
-                        <p className="text-gray-500">Multi-Purpose</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><Activity className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">Ergonomic</p>
-                        <p className="text-gray-500">High Performance</p>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Actions Footer */}
-                  <div className="mt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => window.location.href = `mailto:sales@gym.com?subject=Inquiry: ${selectedEquipment.name}`}
-                      className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3"
-                    >
-                      <span>Inquire About Pricing</span>
-                    </motion.button>
+                    {/* Inquiry Button */}
+                    <div className="mb-10">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => window.location.href = `mailto:sales@gym.com?subject=Inquiry: ${selectedEquipment.name}`}
+                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3"
+                      >
+                        <span>Inquire About Pricing</span>
+                      </motion.button>
+                    </div>
+
+                    {/* --- REVIEWS SECTION --- */}
+                    <div className="border-t border-gray-100 pt-8">
+                       <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <MessageSquare className="w-5 h-5" /> Reviews
+                          </h3>
+                          <button 
+                            onClick={() => checkAuth() && setShowRatingModal(true)}
+                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Write a Review
+                          </button>
+                       </div>
+                       
+                       {reviewsLoading ? (
+                         <div className="space-y-4">
+                           <div className="h-16 bg-gray-100 rounded-xl animate-pulse"/>
+                           <div className="h-16 bg-gray-100 rounded-xl animate-pulse"/>
+                         </div>
+                       ) : reviews.length === 0 ? (
+                         <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                           <p className="text-gray-500">No reviews yet. Be the first to rate this!</p>
+                         </div>
+                       ) : (
+                         <div className="space-y-4">
+                            {reviews.map((review) => (
+                              <div key={review.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
+                                      {review.user_name ? review.user_name.substring(0,2).toUpperCase() : <User className="w-4 h-4"/>}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-bold text-gray-900">{review.user_name}</p>
+                                      <div className="flex text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-gray-200'}`} />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-gray-400">
+                                    {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
+                                  </span>
+                                </div>
+                                {review.review && (
+                                  <p className="text-sm text-gray-600 mt-1 ml-10">"{review.review}"</p>
+                                )}
+                              </div>
+                            ))}
+                         </div>
+                       )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -393,6 +589,14 @@ export default function EquipmentPage() {
           </>
         )}
       </AnimatePresence>
+      
+      {/* Rating Modal Component */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        product={selectedEquipment} 
+        onSubmit={handleRateSubmit}
+      />
     </div>
   );
 }

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, Search, Filter, Star, X, Check, AlertCircle, 
-  ChevronLeft, ChevronRight, Eye, Tag, Minus, Plus, Truck, ShieldCheck 
+  ChevronLeft, ChevronRight, Eye, Tag, Minus, Plus, Truck, ShieldCheck,
+  User, MessageSquare, LogIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCart from '../../hooks/useCart';
 import CartModal from '../../components/CartModal';
 import Skeleton from '../../components/Skeleton';
 import { Toast } from '../../components/Toast';
+import RatingModal from '../../components/RatingModal'; //
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,9 +63,16 @@ export default function ProductShopPage() {
   const [showCart, setShowCart] = useState(false);
   const [notification, setNotification] = useState(null);
   
+  // Product Modal & Logic
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+
+  // Ratings & Reviews State
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
   const { cart, addToCart, updateCartItem, removeFromCart, loading: cartLoading } = useCart();
@@ -73,10 +82,38 @@ export default function ProductShopPage() {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  // --- Auth Check Helper ---
+  const checkAuth = () => {
+    // Assuming you store token in localStorage. Adjust key if needed.
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setShowLoginPrompt(true);
+      return false;
+    }
+    return true;
+  };
+
+  // --- Fetch Reviews ---
+  const fetchReviews = async (productId) => {
+    try {
+      setReviewsLoading(true);
+      const response = await fetch(`${API_URL}/shop/products/${productId}/ratings?per_page=50`); //
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data.ratings);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   const openProductModal = (product) => {
     setSelectedProduct(product);
     setActiveImageIndex(0); 
     setQuantity(1);
+    fetchReviews(product.id);
   };
 
   const fetchProducts = async () => {
@@ -93,7 +130,7 @@ export default function ProductShopPage() {
       if (maxPrice) params.append('max_price', maxPrice);
       if (minRating) params.append('min_rating', minRating);
 
-      const response = await fetch(`${API_URL}/shop/products?${params}`);
+      const response = await fetch(`${API_URL}/shop/products?${params}`); //
 
       if (response.ok) {
         const data = await response.json();
@@ -131,12 +168,56 @@ export default function ProductShopPage() {
   }, []);
 
   const handleAddToCart = async (productId, qty = 1) => {
+    if (!checkAuth()) return; // Guard Clause
+
     const result = await addToCart(productId, qty);
     if (result.success) {
       showNotification('Product added to cart!', 'success');
       if(selectedProduct) setSelectedProduct(null);
     } else {
       showNotification(result.error || 'Failed to add to cart', 'error');
+    }
+  };
+
+  // --- Handle Rating Submit ---
+  const handleRateSubmit = async (rating, review) => {
+    if (!selectedProduct) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/shop/products/${selectedProduct.id}/rate`, { //
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rating, review })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showNotification('Thank you for your rating!', 'success');
+        
+        // Update local state to reflect new average immediately
+        setSelectedProduct(prev => ({
+          ...prev,
+          rating: data.average_rating
+        }));
+
+        // Update the products list locally to show new stars on grid
+        setProducts(prev => prev.map(p => 
+          p.id === selectedProduct.id ? { ...p, rating: data.average_rating } : p
+        ));
+
+        // Refresh reviews list
+        fetchReviews(selectedProduct.id);
+      } else {
+        showNotification(data.error || 'Failed to submit rating', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification('Error submitting rating', 'error');
     }
   };
 
@@ -158,9 +239,9 @@ export default function ProductShopPage() {
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       
       {/* Notification Toast */}
-        {notification && (
-          <Toast notification={notification} />
-        )}
+      {notification && (
+        <Toast notification={notification} />
+      )}
 
       {/* Header */}
       <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm/50 backdrop-blur-lg bg-white/80">
@@ -203,6 +284,7 @@ export default function ProductShopPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-8"
         >
+          {/* ... Search Logic Same as before ... */}
           <div className="flex flex-col md:flex-row gap-2">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -235,7 +317,6 @@ export default function ProductShopPage() {
                 className="overflow-hidden"
               >
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 mt-2 border-t border-gray-100">
-                  {/* Filter Inputs */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Category</label>
                     <select
@@ -294,6 +375,7 @@ export default function ProductShopPage() {
                 className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-indigo-100/50 border border-gray-100 overflow-hidden cursor-pointer transition-all duration-300"
                 onClick={() => openProductModal(product)}
               >
+                {/* Product Card Content */}
                 <div className="aspect-[4/5] relative overflow-hidden bg-gray-100">
                   {product.images && product.images.length > 0 ? (
                     <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
@@ -346,7 +428,36 @@ export default function ProductShopPage() {
           </div>
         )}
       </div>
-      {/* Product Modal */}
+
+      {/* --- Login Required Modal --- */}
+      <AnimatePresence>
+        {showLoginPrompt && (
+           <motion.div 
+            variants={modalBackdrop} initial="hidden" animate="visible" exit="exit"
+            className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+            onClick={() => setShowLoginPrompt(false)}
+           >
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl relative"
+              >
+                 <button onClick={() => setShowLoginPrompt(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+                 <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LogIn className="w-8 h-8 text-red-500" />
+                 </div>
+                 <h3 className="text-xl font-bold text-gray-900 mb-2">Login Required</h3>
+                 <p className="text-gray-500 mb-6">You must be signed in to add items to the cart or rate products.</p>
+                 <div className="flex gap-3">
+                   <button onClick={() => setShowLoginPrompt(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+                   <button className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-indigo-600 transition-colors">Sign In</button>
+                 </div>
+              </motion.div>
+           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- Product Modal --- */}
       <AnimatePresence>
         {selectedProduct && (
           <>
@@ -371,8 +482,8 @@ export default function ProductShopPage() {
                   <X className="w-6 h-6" />
                 </button>
 
-                <div className="w-full md:w-3/5 bg-gray-50/50 p-6 md:p-10 flex flex-col">
-                  {/* Main Image Display */}
+                {/* Left Side: Images */}
+                <div className="w-full md:w-1/2 bg-gray-50/50 p-6 md:p-10 flex flex-col">
                   <div className="relative flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex items-center justify-center mb-6 aspect-square md:aspect-auto">
                      <AnimatePresence mode="wait">
                         <motion.img 
@@ -386,8 +497,6 @@ export default function ProductShopPage() {
                           alt={selectedProduct.name}
                         />
                      </AnimatePresence>
-                     
-                     {/* Floating Badge */}
                      <div className="absolute top-4 left-4">
                        <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-indigo-200">
                          {selectedProduct.category_name}
@@ -395,7 +504,6 @@ export default function ProductShopPage() {
                      </div>
                   </div>
 
-                  {/* Thumbnail Strip */}
                   {selectedProduct.images && selectedProduct.images.length > 1 && (
                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                       {selectedProduct.images.map((img, idx) => (
@@ -413,96 +521,151 @@ export default function ProductShopPage() {
                   )}
                 </div>
 
-                <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col overflow-y-auto bg-white">
-                  
-                  {/* Header Info */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-4 h-4 ${i < Math.floor(selectedProduct.rating) ? 'fill-current' : 'text-gray-200'}`} />
-                        ))}
+                {/* Right Side: Details & Reviews */}
+                <div className="w-full md:w-1/2 flex flex-col overflow-y-auto bg-white scrollbar-thin scrollbar-thumb-gray-200">
+                  <div className="p-8 md:p-12 pb-4">
+                    {/* Header Info */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex text-yellow-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < Math.floor(selectedProduct.rating) ? 'fill-current' : 'text-gray-200'}`} />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium text-gray-400">({selectedProduct.rating})</span>
+                        <span className="mx-2 text-gray-300">•</span>
+                        <span className="text-green-600 text-sm font-medium flex items-center gap-1">
+                          <Check className="w-3 h-3" /> In Stock
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-400">({selectedProduct.rating} Reviews)</span>
-                      <span className="mx-2 text-gray-300">•</span>
-                      <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                        <Check className="w-3 h-3" /> In Stock
-                      </span>
-                    </div>
-                    
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-2">
-                      {selectedProduct.name}
-                    </h2>
-                    
-                    <div className="flex items-baseline gap-3 mt-4">
-                      <span className="text-4xl font-black text-gray-900 tracking-tight">${selectedProduct.price}</span>
-                      <span className="text-lg text-gray-400 line-through decoration-gray-300 font-medium">${(parseFloat(selectedProduct.price) * 1.2).toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <div className="prose prose-sm text-gray-500 mb-8 overflow-y-auto max-h-40 pr-2 custom-scrollbar">
-                    <p className="leading-relaxed text-base">{selectedProduct.description}</p>
-                  </div>
-
-                  {/* Trust Badges */}
-                  <div className="grid grid-cols-2 gap-3 mb-8">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Truck className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">Free Shipping</p>
-                        <p className="text-gray-500">On orders over $100</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><ShieldCheck className="w-5 h-5"/></div>
-                      <div className="text-xs">
-                        <p className="font-bold text-gray-900">2 Year Warranty</p>
-                        <p className="text-gray-500">100% Authentic</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions Footer */}
-                  <div className="mt-auto space-y-4">
-                    <div className="flex items-center justify-between bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
-                      <div className="flex items-center gap-4 px-4">
-                        <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Qty</span>
-                      </div>
-                      <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-100">
-                        <motion.button 
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="p-3 text-gray-500 hover:text-indigo-600 transition-colors"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </motion.button>
-                        <span className="w-8 text-center font-bold text-gray-900">{quantity}</span>
-                        <motion.button 
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="p-3 text-gray-500 hover:text-indigo-600 transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </motion.button>
+                      
+                      <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-2">
+                        {selectedProduct.name}
+                      </h2>
+                      
+                      <div className="flex items-baseline gap-3 mt-4">
+                        <span className="text-4xl font-black text-gray-900 tracking-tight">${selectedProduct.price}</span>
                       </div>
                     </div>
 
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleAddToCart(selectedProduct.id, quantity)}
-                      disabled={cartLoading}
-                      className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-3"
-                    >
-                      {cartLoading ? (
-                        <span className="animate-spin w-6 h-6 border-2 border-white/30 border-t-white rounded-full"></span>
-                      ) : (
-                        <>
-                          <ShoppingCart className="w-5 h-5" />
-                          <span>Add to Cart - ${(parseFloat(selectedProduct.price) * quantity).toFixed(2)}</span>
-                        </>
-                      )}
-                    </motion.button>
+                    <div className="prose prose-sm text-gray-500 mb-8">
+                      <p className="leading-relaxed text-base">{selectedProduct.description}</p>
+                    </div>
+
+                    {/* Trust Badges */}
+                    <div className="grid grid-cols-2 gap-3 mb-8">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Truck className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">Free Shipping</p>
+                          <p className="text-gray-500">On orders over $100</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><ShieldCheck className="w-5 h-5"/></div>
+                        <div className="text-xs">
+                          <p className="font-bold text-gray-900">2 Year Warranty</p>
+                          <p className="text-gray-500">100% Authentic</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions Footer */}
+                    <div className="space-y-4 mb-10">
+                      <div className="flex items-center justify-between bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-4 px-4">
+                          <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Qty</span>
+                        </div>
+                        <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-100">
+                          <motion.button 
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="p-3 text-gray-500 hover:text-indigo-600 transition-colors"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </motion.button>
+                          <span className="w-8 text-center font-bold text-gray-900">{quantity}</span>
+                          <motion.button 
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setQuantity(quantity + 1)}
+                            className="p-3 text-gray-500 hover:text-indigo-600 transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleAddToCart(selectedProduct.id, quantity)}
+                        disabled={cartLoading}
+                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-3"
+                      >
+                        {cartLoading ? (
+                          <span className="animate-spin w-6 h-6 border-2 border-white/30 border-t-white rounded-full"></span>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-5 h-5" />
+                            <span>Add to Cart - ${(parseFloat(selectedProduct.price) * quantity).toFixed(2)}</span>
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+
+                    {/* --- REVIEWS SECTION --- */}
+                    <div className="border-t border-gray-100 pt-8">
+                       <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <MessageSquare className="w-5 h-5" /> Reviews
+                          </h3>
+                          <button 
+                            onClick={() => checkAuth() && setShowRatingModal(true)}
+                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Write a Review
+                          </button>
+                       </div>
+                       
+                       {reviewsLoading ? (
+                         <div className="space-y-4">
+                           <div className="h-16 bg-gray-100 rounded-xl animate-pulse"/>
+                           <div className="h-16 bg-gray-100 rounded-xl animate-pulse"/>
+                         </div>
+                       ) : reviews.length === 0 ? (
+                         <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                           <p className="text-gray-500">No reviews yet. Be the first to rate this!</p>
+                         </div>
+                       ) : (
+                         <div className="space-y-4">
+                            {reviews.map((review) => (
+                              <div key={review.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
+                                      {review.user_name ? review.user_name.substring(0,2).toUpperCase() : <User className="w-4 h-4"/>}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-bold text-gray-900">{review.user_name}</p>
+                                      <div className="flex text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-gray-200'}`} />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-gray-400">
+                                    {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
+                                  </span>
+                                </div>
+                                {review.review && (
+                                  <p className="text-sm text-gray-600 mt-1 ml-10">"{review.review}"</p>
+                                )}
+                              </div>
+                            ))}
+                         </div>
+                       )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -510,6 +673,14 @@ export default function ProductShopPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Rating Modal Component */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        product={selectedProduct}
+        onSubmit={handleRateSubmit}
+      />
 
       {/* Cart Sidebar */}
       {showCart && (

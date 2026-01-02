@@ -21,6 +21,8 @@ const LandingPage = () => {
               <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
               <a href="#pricing" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Reviews</a>
+              <a href="/equipments" className="text-gray-700 hover:text-blue-600 transition">Equipment</a>
+              <a href="/products" className="text-gray-700 hover:text-blue-600 transition">Store</a>
               <button 
                 onClick={() => window.location.href = '/login'}
                 className="px-4 py-2 text-gray-700 hover:text-blue-600 transition"

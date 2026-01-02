@@ -9,12 +9,14 @@ import SignUpPage from "./pages/Signup";
 import AdminLogin from "./pages/admin/AdminLogin";
 import CheckoutPage from "./pages/checkout/Checkout";
 import CheckoutSuccessPage from "./pages/checkout/CheckoutSuccess";
+import ProductShopPage from "./pages/member/Products";
+import EquipmentPage from "./pages/member/Equipments";
 
 function AppContent() {
   const location = useLocation();
   
   // Routes that should not show navbar and footer
-  const noLayoutRoutes = ['/login', '/signup', '/admin/login'];
+  const noLayoutRoutes = ['/login', '/signup', '/pu/admin/login', '/checkout'];
   const isDashboardRoute = location.pathname.includes('/dashboard');
   
   const shouldShowLayout = !noLayoutRoutes.includes(location.pathname) && !isDashboardRoute;
@@ -28,9 +30,11 @@ function AppContent() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="pu/admin/login" element={<AdminLogin />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+        <Route path="/products" element={<ProductShopPage />} />
+        <Route path="/equipments" element={<EquipmentPage />} />
         
         {/* Dashboard Routes */}
         <Route path="/admin/dashboard" element={<Dashboard />} />

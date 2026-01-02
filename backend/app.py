@@ -10,7 +10,11 @@ import pytz
 from flask import send_from_directory, current_app
 from flask_jwt_extended import JWTManager
 from blueprints.Auth import auth_bp
-from blueprints.admin import admin_bp
+from blueprints.admin.admin import admin_bp
+from blueprints.admin.admin_users import admin_users_bp
+from blueprints.admin.analytics import analytics_bp
+from blueprints.admin.orders import orders_bp
+from blueprints.admin.bookings import bookings_bp
 from blueprints.members.shop import shop_bp
 from blueprints.members.cart import cart_bp
 from blueprints.members.session_cart import session_cart_bp
@@ -18,6 +22,7 @@ from blueprints.trainer.sessions import session_bp
 from blueprints.trainer.trainer_profile import trainer_profile_bp
 from blueprints.members.checkout import checkout_bp
 from blueprints.members.membership import membership_bp
+from blueprints.members.profile import profile_bp
 from blueprints.notifications.notifications_bp import notifications_bp
 
 app = Flask(__name__)
@@ -95,6 +100,10 @@ def uploaded_file(filename):
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(admin_users_bp)
+app.register_blueprint(analytics_bp)
+app.register_blueprint(bookings_bp)
+app.register_blueprint(orders_bp)
 app.register_blueprint(shop_bp)
 app.register_blueprint(cart_bp)
 app.register_blueprint(session_bp)
@@ -103,6 +112,7 @@ app.register_blueprint(checkout_bp)
 app.register_blueprint(membership_bp)
 app.register_blueprint(notifications_bp)
 app.register_blueprint(trainer_profile_bp)
+app.register_blueprint(profile_bp)
 
 if __name__ == "__main__":
     with app.app_context():

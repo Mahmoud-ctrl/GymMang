@@ -229,4 +229,210 @@ def get_equipment_categories():
         
     except Exception as e:
         return jsonify({'error': f'Failed to fetch categories: {str(e)}'}), 500
+    
+# Add these imports at the top
+from models import db, Products, ProductCategory, Equipments, EqipmentCategory, Cart, CartItem, User, ProductRating, EquipmentRating
+
+# ==================== RATINGS ====================
+
+@shop_bp.route('/products/<int:product_id>/rate', methods=['POST'])
+@jwt_required()
+def rate_product(product_id):
+    """
+    Rate a product
+    Body: { "rating": 4.5, "review": "optional review text" }
+    """
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        # Validate rating
+        rating_value = data.get('rating')
+        if not rating_value or not (1 <= rating_value <= 5):
+            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        
+        # Check if product exists
+        product = Products.query.filter_by(id=product_id, is_active=True).first()
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        
+        # Check if user already rated this product
+        existing_rating = ProductRating.query.filter_by(
+            user_id=user_id,
+            product_id=product_id
+        ).first()
+        
+        if existing_rating:
+            # Update existing rating
+            existing_rating.rating = rating_value
+            existing_rating.review = data.get('review')
+            existing_rating.updated_at = datetime.utcnow()
+        else:
+            # Create new rating
+            new_rating = ProductRating(
+                rating=rating_value,
+                review=data.get('review'),
+                user_id=user_id,
+                product_id=product_id
+            )
+            db.session.add(new_rating)
+        
+        db.session.commit()
+        
+        # Update product's average rating
+        avg_rating = db.session.query(func.avg(ProductRating.rating))\
+            .filter(ProductRating.product_id == product_id)\
+            .scalar() or 0.0
+        
+        product.rating = round(avg_rating, 2)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Rating submitted successfully',
+            'average_rating': product.rating
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to submit rating: {str(e)}'}), 500
+
+
+@shop_bp.route('/equipments/<int:equipment_id>/rate', methods=['POST'])
+@jwt_required()
+def rate_equipment(equipment_id):
+    """
+    Rate an equipment
+    Body: { "rating": 4.5, "review": "optional review text" }
+    """
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        # Validate rating
+        rating_value = data.get('rating')
+        if not rating_value or not (1 <= rating_value <= 5):
+            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        
+        # Check if equipment exists
+        equipment = Equipments.query.filter_by(id=equipment_id, is_active=True).first()
+        if not equipment:
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        # Check if user already rated this equipment
+        existing_rating = EquipmentRating.query.filter_by(
+            user_id=user_id,
+            equipment_id=equipment_id
+        ).first()
+        
+        if existing_rating:
+            # Update existing rating
+            existing_rating.rating = rating_value
+            existing_rating.review = data.get('review')
+            existing_rating.updated_at = datetime.utcnow()
+        else:
+            # Create new rating
+            new_rating = EquipmentRating(
+                rating=rating_value,
+                review=data.get('review'),
+                user_id=user_id,
+                equipment_id=equipment_id
+            )
+            db.session.add(new_rating)
+        
+        db.session.commit()
+        
+        # Update equipment's average rating
+        avg_rating = db.session.query(func.avg(EquipmentRating.rating))\
+            .filter(EquipmentRating.equipment_id == equipment_id)\
+            .scalar() or 0.0
+        
+        equipment.rating = round(avg_rating, 2)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Rating submitted successfully',
+            'average_rating': equipment.rating
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to submit rating: {str(e)}'}), 500
+
+
+@shop_bp.route('/products/<int:product_id>/ratings', methods=['GET'])
+def get_product_ratings(product_id):
+    """Get all ratings for a product with pagination"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    try:
+        product = Products.query.filter_by(id=product_id, is_active=True).first()
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        
+        pagination = ProductRating.query.filter_by(product_id=product_id)\
+            .order_by(ProductRating.created_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+        
+        ratings = [{
+            'id': r.id,
+            'rating': r.rating,
+            'review': r.review,
+            'user_name': (
+                f"{r.user.first_name} {r.user.last_name}"
+                if r.user and r.user.first_name and r.user.last_name
+                else 'Anonymous'
+            ),
+            'created_at': r.created_at.isoformat() if r.created_at else None
+        } for r in pagination.items]
+        
+        return jsonify({
+            'ratings': ratings,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': page,
+            'average_rating': product.rating
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to fetch ratings: {str(e)}'}), 500
+
+
+@shop_bp.route('/equipments/<int:equipment_id>/ratings', methods=['GET'])
+def get_equipment_ratings(equipment_id):
+    """Get all ratings for equipment with pagination"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    try:
+        equipment = Equipments.query.filter_by(id=equipment_id, is_active=True).first()
+        if not equipment:
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        pagination = EquipmentRating.query.filter_by(equipment_id=equipment_id)\
+            .order_by(EquipmentRating.created_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+        
+        ratings = [{
+            'id': r.id,
+            'rating': r.rating,
+            'review': r.review,
+            'user_name': (
+                f"{r.user.first_name} {r.user.last_name}"
+                if r.user and r.user.first_name and r.user.last_name
+                else 'Anonymous'
+            ),
+            'created_at': r.created_at.isoformat() if r.created_at else None
+        } for r in pagination.items]
+        
+        return jsonify({
+            'ratings': ratings,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': page,
+            'average_rating': equipment.rating
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to fetch ratings: {str(e)}'}), 500
 

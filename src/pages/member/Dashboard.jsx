@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Activity, 
-  Calendar, 
-  CreditCard, 
-  ShoppingBag, 
-  TrendingUp, 
-  Clock, 
-  User, 
-  ChevronRight,
-  Dumbbell
+  Activity, Calendar, CreditCard, ShoppingBag, TrendingUp, Clock, User, 
+  ChevronRight, Dumbbell
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-// Animation Variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -273,7 +266,10 @@ export default function MemberDashboard() {
                     </span>
                   </div>
 
-                  <button className="w-full py-2.5 border border-indigo-600 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors">
+                  <button 
+                    className="w-full py-2.5 border border-indigo-600 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors"
+                    onClick={() => window.location.href = '/member/dashboard/my-membership'}
+                  >
                     Manage Membership
                   </button>
                 </div>
@@ -298,7 +294,9 @@ export default function MemberDashboard() {
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
                     <Dumbbell className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">Book a Class</span>
+                    <span className="font-medium text-sm">
+                     <Link to="/member/dashboard/classes">Book a Class</Link>
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>
@@ -306,7 +304,9 @@ export default function MemberDashboard() {
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
                     <ShoppingBag className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">Shop Equipment</span>
+                    <span className="font-medium text-sm">
+                      <Link to="/member/dashboard/products">Browse Store</Link>
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>
@@ -314,7 +314,9 @@ export default function MemberDashboard() {
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
                     <Activity className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">View History</span>
+                    <span className="font-medium text-sm">
+                      <Link to="/member/dashboard/bookings">Manage Bookings</Link>
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>
@@ -328,7 +330,10 @@ export default function MemberDashboard() {
               <div className="relative z-10">
                 <h3 className="font-bold text-lg mb-2">Need a Boost?</h3>
                 <p className="text-gray-300 text-sm mb-4">Check out our new protein supplements in the store.</p>
-                <button className="px-4 py-2 bg-white text-gray-900 rounded-lg text-sm font-bold hover:bg-gray-100 transition-colors">
+                <button 
+                  className="px-4 py-2 bg-white text-gray-900 rounded-lg text-sm font-bold hover:bg-gray-100 transition-colors"
+                  onClick={() => window.location.href = '/member/dashboard/products'}
+                >
                   Shop Now
                 </button>
               </div>

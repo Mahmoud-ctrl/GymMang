@@ -94,6 +94,30 @@ class Products(db.Model):
     # Relationships
     category = db.relationship('ProductCategory', backref=db.backref('products', lazy=True))
 
+class ProductRating(db.Model):
+    __tablename__ = 'product_ratings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False)
+    rating = db.Column(db.Float, nullable=False)  # 1-5 stars
+    review = db.Column(db.Text)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    product = db.relationship('Products', backref=db.backref('ratings', lazy=True))
+    user = db.relationship('User', backref=db.backref('product_ratings', lazy=True))
+    
+    # Ensure one rating per user per product
+    __table_args__ = (
+        db.UniqueConstraint('product_id', 'user_id', name='unique_product_user_rating'),
+        db.CheckConstraint('rating >= 1 AND rating <= 5', name='check_product_rating_range'),
+    )
+    
+    def __repr__(self):
+        return f'<ProductRating product_id={self.product_id} user_id={self.user_id} rating={self.rating}>'
+
 class EqipmentCategory(db.Model):
     __tablename__ = 'equipment_category'
     id = db.Column(db.Integer, primary_key=True)
@@ -107,6 +131,7 @@ class Equipments(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=False)
     images = db.Column(db.ARRAY(db.String), nullable=True)
+    rating = db.Column(db.Float, nullable=False, server_default="0")
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     is_active = db.Column(db.Boolean, default=True)
@@ -115,6 +140,30 @@ class Equipments(db.Model):
 
     # Relationships
     category = db.relationship('EqipmentCategory', backref=db.backref('equipments', lazy=True))
+
+class EquipmentRating(db.Model):
+    __tablename__ = 'equipment_ratings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    equipment_id = db.Column(db.Integer, db.ForeignKey('equipments.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False)
+    rating = db.Column(db.Float, nullable=False)  # 1-5 stars
+    review = db.Column(db.Text)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    equipment = db.relationship('Equipments', backref=db.backref('ratings', lazy=True))
+    user = db.relationship('User', backref=db.backref('equipment_ratings', lazy=True))
+    
+    # Ensure one rating per user per equipment
+    __table_args__ = (
+        db.UniqueConstraint('equipment_id', 'user_id', name='unique_equipment_user_rating'),
+        db.CheckConstraint('rating >= 1 AND rating <= 5', name='check_equipment_rating_range'),
+    )
+    
+    def __repr__(self):
+        return f'<EquipmentRating equipment_id={self.equipment_id} user_id={self.user_id} rating={self.rating}>'
 
 # Class/Session Type
 class ClassType(db.Model):

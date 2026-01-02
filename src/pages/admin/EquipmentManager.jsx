@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, X, Dumbbell, Image, AlertCircle, CheckCircle, FolderPlus } from 'lucide-react';
+import { 
+  Plus, Edit2, Trash2, Search, X, Dumbbell, Image, AlertCircle, CheckCircle, FolderPlus 
+} from 'lucide-react';
 
 export default function AdminEquipmentPage() {
   const [equipments, setEquipments] = useState([]);
@@ -275,7 +277,7 @@ export default function AdminEquipmentPage() {
                   resetForm();
                   setShowModal(true);
                 }}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 Add Equipment
@@ -362,7 +364,7 @@ export default function AdminEquipmentPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(equipment)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 bg-zinc-50 text-zinc-600 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                       Edit
@@ -580,7 +582,7 @@ export default function AdminEquipmentPage() {
                     <button
                       type="button"
                       onClick={handleAddImage}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Add
@@ -617,7 +619,7 @@ export default function AdminEquipmentPage() {
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
               >
                 {editingEquipment ? 'Update Equipment' : 'Create Equipment'}
               </button>

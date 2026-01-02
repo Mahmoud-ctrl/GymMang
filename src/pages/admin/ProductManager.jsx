@@ -285,7 +285,7 @@ export default function AdminProductsPage() {
                   resetForm();
                   setShowModal(true);
                 }}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 Add Product
@@ -379,7 +379,7 @@ export default function AdminProductsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 text-zinc-800 px-3 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                       Edit
@@ -632,7 +632,7 @@ export default function AdminProductsPage() {
                     <button
                       type="button"
                       onClick={handleAddImage}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Add
@@ -669,7 +669,7 @@ export default function AdminProductsPage() {
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
               >
                 {editingProduct ? 'Update Product' : 'Create Product'}
               </button>

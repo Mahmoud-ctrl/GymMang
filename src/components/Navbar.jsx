@@ -23,8 +23,8 @@ const Navigation = () => {
             <div className="hidden md:flex items-center space-x-8">
               <a href="#home" className="text-gray-700 hover:text-blue-600 font-medium transition">Home</a>
               <a href="#features" className="text-gray-700 hover:text-blue-600 font-medium transition">Features</a>
-              <a href="/equipment" className="text-gray-700 hover:text-blue-600 font-medium transition">Equipment</a>
-              <a href="/store" className="text-gray-700 hover:text-blue-600 font-medium transition">Store</a>
+              <a href="/equipments" className="text-gray-700 hover:text-blue-600 font-medium transition">Equipment</a>
+              <a href="/products" className="text-gray-700 hover:text-blue-600 font-medium transition">Store</a>
               <a href="#about" className="text-gray-700 hover:text-blue-600 font-medium transition">About</a>
             </div>
 

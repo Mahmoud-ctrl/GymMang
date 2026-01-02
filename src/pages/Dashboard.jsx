@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import AdminProductsPage from './admin/ProductManager'; 
 import AdminEquipmentPage from './admin/EquipmentManager';
+import AdminUsersPage from './admin/UserManagment';
+import AdminOrdersPage from './admin/OrderManagment';
+import AdminBookingsPage from './admin/AdminBookings';
 import ProductShopPage from './member/Products';
 import EquipmentPage from './member/Equipments';
 import SessionBookingPage from './member/SessionBooking';
@@ -17,7 +20,9 @@ import TrainerDashboard from './trainer/Dashboard';
 import MembershipPage from './member/Membership';
 import BMICalculator from './member/BMICalculator';
 import MemberDashboard from './member/Dashboard';
+import MemberProfilePage from './member/MemberProfile';
 import NotificationBell from '../components/Notification';
+import AdminCommandCenter from './admin/AdminAnalytics';
 
 const Dashboard = () => {
   const { tab } = useParams();
@@ -43,9 +48,8 @@ const Dashboard = () => {
         { id: 'equipment-manager', label: 'Equipment Manager', icon: Warehouse },
         { id: 'user-management', label: 'User Management', icon: Users },
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
-        { id: 'memberships', label: 'Memberships', icon: Receipt },
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'booking-management', label: 'Booking Manager', icon: Calendar },
       ],
       Member: [
         { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -133,15 +137,13 @@ const Dashboard = () => {
         case 'equipment-manager':
           return <AdminEquipmentPage />;
         case 'user-management':
-          return <PlaceholderContent title="User Management" />;
+          return <AdminUsersPage />;
         case 'orders':
-          return <PlaceholderContent title="Orders" />;
-        case 'memberships':
-          return <PlaceholderContent title="Memberships" />;
+          return <AdminOrdersPage />;
         case 'analytics':
-          return <PlaceholderContent title="Analytics" />;
-        case 'settings':
-          return <PlaceholderContent title="Settings" />;
+          return <AdminCommandCenter />;
+        case 'booking-management':
+          return <AdminBookingsPage />;
         default:
           return <PlaceholderContent title="Admin Dashboard" />;
       }
@@ -163,7 +165,7 @@ const Dashboard = () => {
         case 'my-membership':
           return <MembershipPage />;
         case 'profile':
-          return <PlaceholderContent title="Profile" />;
+          return <MemberProfilePage />;
         default:
           return <PlaceholderContent title="Member Dashboard" />;
       }
