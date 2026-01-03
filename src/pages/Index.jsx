@@ -1,356 +1,280 @@
 import React, { useState } from 'react';
-import { Dumbbell, Users, ShoppingBag, Calendar, TrendingUp, Star, Menu, X, Award, Clock, Target, Zap, CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { 
+  TrendingUp, ArrowRight, Calendar, Target, ShoppingBag, Flame, Trophy, Star,
+  Crown, Check
+} from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const LandingPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
+  // Animation Variants
+  const fadeInUp = {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true },
+    transition: { duration: 0.6 }
+  };
+
+  const staggerContainer = {
+    initial: { opacity: 0 },
+    whileInView: { opacity: 1 },
+    transition: { staggerChildren: 0.2 }
+  };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed w-full bg-white/95 backdrop-blur-sm shadow-sm z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Dumbbell className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">FitZone</span>
-            </div>
-            
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
-              <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
-              <a href="#pricing" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Reviews</a>
-              <a href="/equipments" className="text-gray-700 hover:text-blue-600 transition">Equipment</a>
-              <a href="/products" className="text-gray-700 hover:text-blue-600 transition">Store</a>
-              <button 
-                onClick={() => window.location.href = '/login'}
-                className="px-4 py-2 text-gray-700 hover:text-blue-600 transition"
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => window.location.href = '/signup'}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
-              >
-                Get Started
-              </button>
-            </div>
-
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#home" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700">Home</a>
-              <a href="#features" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700">Features</a>
-              <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700">Pricing</a>
-              <a href="#testimonials" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700">Reviews</a>
-              <button onClick={() => { window.location.href = '/login'; setIsMenuOpen(false); }} className="block w-full text-left py-2 text-gray-700">Login</button>
-              <button onClick={() => window.location.href = '/signup'} className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg">Get Started</button>
-            </div>
-          </div>
-        )}
-      </nav>
+    <div className="min-h-screen bg-white selection:bg-blue-100">
+      <Navbar />
 
       {/* Hero Section */}
-      <section id="home" className="pt-32 pb-20 px-4 bg-gray-50">
+      <section id="home" className="relative pt-32 pb-20 px-4 overflow-hidden">
+        {/* Decorative background blobs */}
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl opacity-50 -z-10" />
+        
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
-                🎉 Limited Time: 20% Off First Month
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-8"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-sm font-bold border border-blue-100">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                20% OFF FIRST MONTH
               </div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Transform Your Body, Mind & Life
+              <h1 className="text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1]">
+                Your Body <br />
+                <span className="text-blue-600 italic">Our Mission.</span>
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Join FitZone's premium gym management platform. Get personalized training plans, track your progress, and shop fitness essentials—all in one place.
+              <p className="text-xl text-gray-600 leading-relaxed max-w-xl">
+                FitZone is the all-in-one ecosystem for elite athletes and fitness enthusiasts. Personal coaching, smart tracking, and premium gear.
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                  onClick={() => window.location.href = '/login'}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-lg transition transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.location.href = '/signup'}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-200 flex items-center justify-center gap-2"
                 >
-                  Start Free Trial <ArrowRight className="h-5 w-5" />
-                </button>
-                <button 
-                  onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-xl hover:border-blue-600 font-semibold text-lg transition"
-                >
-                  See How It Works
-                </button>
+                  Start Free Trial <ArrowRight />
+                </motion.button>
               </div>
-              <div className="grid grid-cols-3 gap-6 pt-4">
-                <div>
-                  <p className="text-4xl font-bold text-gray-900">500+</p>
-                  <p className="text-sm text-gray-600">Active Members</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-gray-900">50+</p>
-                  <p className="text-sm text-gray-600">Expert Trainers</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-gray-900">4.9⭐</p>
-                  <p className="text-sm text-gray-600">User Rating</p>
-                </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white">
+                <img 
+                  src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=800&fit=crop" 
+                  alt="Training" 
+                  className="w-full h-[600px] object-cover"
+                />
               </div>
+              {/* Floating Stat Card */}
+              <motion.div 
+                animate={{ y: [0, -20, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                className="absolute -bottom-6 -left-6 z-20 bg-white p-6 rounded-2xl shadow-2xl flex items-center gap-4"
+              >
+                <div className="bg-green-500 p-3 rounded-xl text-white">
+                  <TrendingUp />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Daily Progress</p>
+                  <p className="text-2xl font-bold text-gray-900">+12.5%</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 border-y border-gray-100 overflow-hidden bg-black">
+        <div className="flex space-x-12 animate-marquee whitespace-nowrap">
+          {[ 'NIKE', 'ADIDAS', 'PUMA', 'UNDER ARMOUR', 'REEBOK', 'LULULEMON', 'MOHAMMAD', 'RAWAD' ].map((brand) => (
+            <span key={brand} className="text-4xl font-black text-gray-200 hover:text-blue-600 transition-colors cursor-default">
+              {brand}
+            </span>
+          ))}
+          {/* Duplicate for infinite loop effect */}
+          {[ 'NIKE', 'ADIDAS', 'PUMA', 'UNDER ARMOUR', 'REEBOK', 'LULULEMON', 'HASAN', 'KASSEM' ].map((brand) => (
+            <span key={brand + "2"} className="text-4xl font-black text-gray-200 hover:text-blue-600 transition-colors cursor-default">
+              {brand}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section id="pricing" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black text-gray-900 mb-4">Choose Your Level</h2>
+            <div className="flex items-center justify-center gap-4">
+              <span className={`text-sm ${!isAnnual ? 'text-blue-600 font-bold' : 'text-gray-500'}`}>Monthly</span>
+              <button 
+                onClick={() => setIsAnnual(!isAnnual)}
+                className="w-14 h-7 bg-gray-200 rounded-full p-1 transition-colors duration-300 relative"
+              >
+                <motion.div 
+                  animate={{ x: isAnnual ? 28 : 0 }}
+                  className="w-5 h-5 bg-blue-600 rounded-full shadow-md"
+                />
+              </button>
+              <span className={`text-sm ${isAnnual ? 'text-blue-600 font-bold' : 'text-gray-500'}`}>Annual <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">-20%</span></span>
             </div>
-            <div className="relative">
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { name: 'Starter', price: 29, icon: <Flame />, features: ['Gym Access', 'Mobile App', '1 Group Class/mo'] },
+              { name: 'Pro', price: 59, icon: <Trophy />, features: ['All Starter Features', 'Personal Trainer', 'Nutrition Plan'], popular: true },
+              { name: 'Elite', price: 99, icon: <Crown />, features: ['All Pro Features', 'Recovery Spa', 'Guest Passes'] }
+            ].map((plan, idx) => (
+              <motion.div 
+                key={idx}
+                whileHover={{ y: -10 }}
+                className={`p-8 rounded-[2.5rem] border-2 ${plan.popular ? 'border-blue-600 bg-blue-50/30' : 'border-gray-100'} relative`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">
+                    MOST POPULAR
+                  </span>
+                )}
+                <div className="text-blue-600 mb-4">{plan.icon}</div>
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-black">${isAnnual ? Math.floor(plan.price * 0.8) : plan.price}</span>
+                  <span className="text-gray-500">/mo</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2 text-gray-600">
+                      <Check className="h-5 w-5 text-green-500" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button className={`w-full py-4 rounded-2xl font-bold transition ${plan.popular ? 'bg-blue-600 text-white shadow-xl shadow-blue-200' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
+                  Get Started
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features with Hover Effects */}
+      <section id="features" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div {...fadeInUp} className="text-center mb-20">
+            <h2 className="text-4xl font-black text-gray-900 mb-4">Master Your Routine</h2>
+            <div className="h-1.5 w-20 bg-blue-600 mx-auto rounded-full" />
+          </motion.div>
+
+          <motion.div 
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="whileInView"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-3 gap-8"
+          >
+            {[
+              { title: "Smart Scheduling", icon: <Calendar />, color: "bg-blue-500", desc: "AI-powered booking that learns your habits." },
+              { title: "Custom Plans", icon: <Target />, color: "bg-purple-500", desc: "Nutrition and lifting plans unique to your DNA." },
+              { title: "Elite Store", icon: <ShoppingBag />, color: "bg-orange-500", desc: "Member-only access to pro supplements." }
+            ].map((feature, idx) => (
+              <motion.div 
+                key={idx}
+                variants={fadeInUp}
+                whileHover={{ y: -10 }}
+                className="p-10 bg-white rounded-[2rem] shadow-sm hover:shadow-xl transition-all border border-gray-100"
+              >
+                <div className={`${feature.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="py-24 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid lg:grid-cols-4 grid-rows-2 gap-4 h-[600px]">
+            <motion.div 
+              {...fadeInUp}
+              className="lg:col-span-2 bg-blue-600 rounded-[2rem] p-8 flex flex-col justify-end group cursor-pointer"
+            >
+              <Star className="text-white/20 h-20 w-20 absolute top-8 right-8 group-hover:rotate-12 transition-transform" />
+              <h3 className="text-3xl font-bold mb-2">5-Star Community</h3>
+              <p className="text-blue-100">Join a network of 10k+ members supporting each other daily.</p>
+            </motion.div>
+            
+            <motion.div 
+              {...fadeInUp}
+              className="lg:col-span-1 bg-gray-800 rounded-[2rem] p-8 flex flex-col justify-center items-center text-center"
+            >
+              <div className="text-5xl font-black text-blue-500 mb-2">24/7</div>
+              <p className="text-gray-400">Door Access Anytime</p>
+            </motion.div>
+
+            <motion.div 
+              {...fadeInUp}
+              className="lg:col-span-1 lg:row-span-2 bg-indigo-500 rounded-[2rem] p-8 relative overflow-hidden"
+            >
               <img 
-                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop" 
-                alt="Person working out" 
-                className="rounded-2xl shadow-2xl w-full h-96 lg:h-[500px] object-cover"
+                src="https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=800&fit=crop" 
+                className="absolute inset-0 w-full h-full object-cover opacity-50 hover:scale-110 transition-transform duration-700"
+                alt="Trainer"
               />
-              <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-xl">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">85%</p>
-                    <p className="text-sm text-gray-600">Success Rate</p>
-                  </div>
-                </div>
+              <div className="relative z-10 h-full flex flex-col justify-end">
+                <h3 className="text-2xl font-bold">Expert Coaching</h3>
+                <p className="text-sm text-indigo-100">Pro guidance in every rep.</p>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </motion.div>
 
-      {/* Stats Bar */}
-      <section className="py-12 px-4 bg-blue-600">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center text-white">
-            <div>
-              <Award className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-3xl font-bold">15+</p>
-              <p className="text-blue-100">Years Experience</p>
-            </div>
-            <div>
-              <Users className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-3xl font-bold">10k+</p>
-              <p className="text-blue-100">Happy Members</p>
-            </div>
-            <div>
-              <Dumbbell className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-3xl font-bold">200+</p>
-              <p className="text-blue-100">Equipment</p>
-            </div>
-            <div>
-              <Star className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-3xl font-bold">98%</p>
-              <p className="text-blue-100">Satisfaction</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-24 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-blue-600 font-semibold mb-2">FEATURES</p>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Everything You Need to Succeed</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful tools and features designed to help you reach your fitness goals faster
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Calendar className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Scheduling</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Book classes and personal training sessions with real-time availability. Never miss a workout with automated reminders.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-green-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <TrendingUp className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Progress Tracking</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Monitor every metric that matters. Track workouts, calories, body composition, and see your transformation unfold.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-purple-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Target className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Custom Plans</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Get personalized workout and nutrition plans tailored to your goals, fitness level, and preferences.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-orange-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <ShoppingBag className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Fitness Store</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Shop premium supplements, gear, and apparel. Exclusive member discounts on all products.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-red-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Users className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Expert Coaches</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Work with certified trainers who design programs just for you. Get form checks and motivation when you need it.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 rounded-2xl hover:shadow-xl transition group cursor-pointer">
-              <div className="bg-yellow-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Zap className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">24/7 Access</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Train on your schedule with round-the-clock gym access and digital workout library available anytime.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-24 px-4 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-blue-600 font-semibold mb-2">HOW IT WORKS</p>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">Get Started in 3 Simple Steps</h2>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Create Your Profile</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Sign up in minutes and tell us about your fitness goals, experience level, and preferences.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Get Your Plan</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Receive a personalized workout program designed by our expert trainers just for you.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Start Training</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Book your first session, track your progress, and watch yourself transform week by week.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 px-4 bg-blue-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Life?
-          </h2>
-          <p className="text-xl text-blue-100 mb-10">
-            Join 10,000+ members who are already crushing their fitness goals with FitZone
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={() => window.location.href = '/login'}
-              className="px-10 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-100 font-bold text-lg transition transform hover:scale-105 shadow-xl flex items-center justify-center gap-2"
+            <motion.div 
+              {...fadeInUp}
+              className="lg:col-span-3 bg-gray-900 text-white rounded-[2rem] p-8 flex items-center justify-between"
             >
-              Start Your Free Trial <ArrowRight className="h-5 w-5" />
-            </button>
-            <button 
-              onClick={() => window.location.href = '/login'}
-              className="px-10 py-4 bg-blue-700 text-white border-2 border-blue-400 rounded-xl hover:bg-blue-800 font-bold text-lg transition"
-            >
-              Sign In
+              <div>
+                <h3 className="text-3xl font-black">Ready to burn 500 calories?</h3>
+                <p className="text-gray-500">Our HIIT classes start every 30 minutes.</p>
+              </div>
+              <button className="bg-gray-900 text-white p-4 rounded-full hover:scale-110 transition">
+                <ArrowRight />
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Modern CTA */}
+      <section className="py-20 px-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          className="max-w-6xl mx-auto bg-gray-900 rounded-[3rem] p-12 lg:p-20 text-center relative overflow-hidden"
+        >
+          <div className="relative z-10">
+            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-8">Ready to Level Up?</h2>
+            <button className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-xl hover:bg-blue-50 transition shadow-2xl">
+              JOIN THE TRIBE
             </button>
           </div>
-          <p className="text-blue-200 mt-6 text-sm">No credit card required • Cancel anytime</p>
-        </div>
-      </section>
-
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24 px-4 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-blue-600 font-semibold mb-2">TESTIMONIALS</p>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">What Our Members Say</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-sm">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />)}
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "FitZone completely changed my approach to fitness. The personalized plans and amazing trainers kept me motivated every step of the way!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">SJ</span>
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">Sarah Johnson</p>
-                  <p className="text-sm text-gray-600">Member for 2 years</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />)}
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "Lost 30 pounds in 4 months! The progress tracking feature made it so easy to stay accountable and see real results."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold">MC</span>
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">Mike Chen</p>
-                  <p className="text-sm text-gray-600">Member for 1 year</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />)}
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "Best gym experience ever! The equipment is top-notch and the community is incredibly supportive. Worth every penny."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold">EP</span>
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">Emma Parker</p>
-                  <p className="text-sm text-gray-600">Member for 6 months</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Decorative Circle */}
+          <div className="absolute top-0 left-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        </motion.div>
       </section>
     </div>
   );

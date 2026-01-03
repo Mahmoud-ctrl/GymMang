@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Home, BarChart3, Users, Settings, Package, Menu, X, User, Warehouse, Dumbbell,
-  Search, ChevronDown, LogOut, Bell, FileText, ShoppingCart, Receipt, Calendar, Calculator
+  Search, ChevronDown, LogOut, Bell, FileText, ShoppingCart, Receipt, Calendar, Wrench
 } from 'lucide-react';
 import AdminProductsPage from './admin/ProductManager'; 
 import AdminEquipmentPage from './admin/EquipmentManager';
 import AdminUsersPage from './admin/UserManagment';
 import AdminOrdersPage from './admin/OrderManagment';
 import AdminBookingsPage from './admin/AdminBookings';
+import AdminTrainerManagement from './admin/AdminTrainers';
+import AdminDashboard from './admin/AdminDashboard';
 import ProductShopPage from './member/Products';
 import EquipmentPage from './member/Equipments';
 import SessionBookingPage from './member/SessionBooking';
@@ -32,9 +34,12 @@ const Dashboard = () => {
   const dropDownRef = useRef(null);
   
   // Get user from localStorage
-  const user = localStorage.getItem('user') 
-    ? JSON.parse(localStorage.getItem('user')) 
-    : { first_name: 'Admin', last_name: 'User', role: 'Admin', email: 'admin@gym.com' };
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    navigate("/login", { replace: true });
+    return null;
+  }
 
   // Determine active tab from URL or default to 'dashboard'
   const activeTab = tab || 'dashboard';
@@ -47,6 +52,7 @@ const Dashboard = () => {
         { id: 'product-manager', label: 'Product Manager', icon: Package },
         { id: 'equipment-manager', label: 'Equipment Manager', icon: Warehouse },
         { id: 'user-management', label: 'User Management', icon: Users },
+        { id: 'trainer-management', label: 'Trainer Management', icon: Wrench },
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         { id: 'booking-management', label: 'Booking Manager', icon: Calendar },
@@ -131,7 +137,7 @@ const Dashboard = () => {
     if (user.role === 'Admin') {
       switch(activeTab) {
         case 'dashboard':
-          return <PlaceholderContent title="Admin Dashboard" />;
+          return <AdminDashboard />;
         case 'product-manager':
           return <AdminProductsPage />;
         case 'equipment-manager':
@@ -144,6 +150,8 @@ const Dashboard = () => {
           return <AdminCommandCenter />;
         case 'booking-management':
           return <AdminBookingsPage />;
+        case 'trainer-management':
+          return <AdminTrainerManagement />;
         default:
           return <PlaceholderContent title="Admin Dashboard" />;
       }

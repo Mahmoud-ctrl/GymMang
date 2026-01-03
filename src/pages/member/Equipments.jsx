@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Dumbbell, Search, Filter, X, ChevronLeft, ChevronRight, 
   Eye, Tag, Settings, Wrench, ShieldCheck, Activity,
@@ -6,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from '../../components/Toast';
-import RatingModal from '../../components/RatingModal'; //
+import RatingModal from '../../components/RatingModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -65,6 +66,9 @@ export default function EquipmentPage() {
   const [notification, setNotification] = useState(null);
 
   const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
+
+  const location = useLocation();
+  const showHeader = location.pathname.startsWith("/member/dashboard" || "/traienr/dashboard" || "/admin/dashboard");
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -211,7 +215,11 @@ export default function EquipmentPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm/50 backdrop-blur-lg bg-white/80">
+      <div
+        className={`bg-white z-40 border-b border-gray-100 shadow-sm/50 backdrop-blur-lg bg-white/80
+          ${showHeader ? "sticky top-0 visible" : "invisible"}
+        `}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">

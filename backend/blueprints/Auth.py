@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
-from models import db, User
+from models import db, User, Trainer
 import uuid
+from Notifications import notify_admin_new_trainer_application
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -14,18 +15,7 @@ def generate_uuid():
 def signup():
     """
     Register a new user (Member or Trainer only)
-    
-    Expected JSON body:
-    {
-        "email": "user@example.com",
-        "password": "password123",
-        "first_name": "John",
-        "last_name": "Doe",
-        "phone": "+1234567890",  # optional
-        "date_of_birth": "1990-01-01",  # optional, format: YYYY-MM-DD
-        "gender": "Male",  # optional: Male, Female, Other
-        "role": "Member"  # required: Member or Trainer only
-    }
+    Trainers will be created as INACTIVE and need to complete profile
     """
     data = request.get_json()
     
@@ -76,7 +66,7 @@ def signup():
             date_of_birth=date_of_birth,
             gender=data.get('gender'),
             role=role,
-            is_active=True
+            is_active=(False)
         )
         
         # Set password (will be hashed automatically)
@@ -103,7 +93,9 @@ def signup():
                 'email': new_user.email,
                 'first_name': new_user.first_name,
                 'last_name': new_user.last_name,
-                'role': new_user.role
+                'role': new_user.role,
+                'is_active': new_user.is_active,
+                'needs_profile': (role == 'Trainer')  # Frontend flag
             }
         }), 201
         
@@ -111,22 +103,72 @@ def signup():
         db.session.rollback()
         return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
+@auth_bp.route('/trainer/complete-profile', methods=['POST'])
+@jwt_required()
+def complete_trainer_profile():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    try:
+        user = User.query.filter_by(user_id=user_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if user.role != 'Trainer':
+            return jsonify({'error': 'Only trainers can complete this profile'}), 403
+        
+        existing_trainer = Trainer.query.filter_by(user_id=user_id).first()
+        if existing_trainer:
+            return jsonify({'error': 'Trainer profile already exists'}), 409
+        
+        trainer = Trainer(
+            trainer_id=generate_uuid(),
+            user_id=user_id,
+            years_of_experience=data.get('years_of_experience'),
+            hourly_rate=data.get('hourly_rate'),
+            specialization=data.get('specialization'),
+            bio=data.get('bio'),
+            height=data.get('height'),
+            weight=data.get('weight'),
+            certifications=data.get('certifications')
+        )
+
+        notify_admin_new_trainer_application(
+            admin_id='90a89c93-2095-4582-b684-12b1e4edb337',
+            trainer_name=f"{user.first_name} {user.last_name}"
+        )
+        
+        db.session.add(trainer)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Trainer profile completed successfully',
+            'user': { 
+                'user_id': user.user_id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role,
+                'is_active': user.is_active
+            },
+            'trainer': {
+                'trainer_id': trainer.trainer_id,
+                'years_of_experience': trainer.years_of_experience,
+                'hourly_rate': float(trainer.hourly_rate) if trainer.hourly_rate else None,
+                'specialization': trainer.specialization
+            }
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to complete profile: {str(e)}'}), 500
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """
     Login user (Member or Trainer only - Admin cannot login through this endpoint)
-    
-    Expected JSON body:
-    {
-        "email": "user@example.com",
-        "password": "password123"
-    }
-    
-    Returns:
-    - JWT token
-    - User information including role
-    - Frontend should handle redirection based on role
     """
     data = request.get_json()
     
@@ -141,10 +183,6 @@ def login():
         if not user:
             return jsonify({'error': 'Invalid email or password'}), 401
         
-        # Check if user is active
-        if not user.is_active:
-            return jsonify({'error': 'Account is deactivated'}), 403
-        
         # Verify password
         if not user.check_password(data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
@@ -156,6 +194,12 @@ def login():
         # Only allow Member and Trainer
         if user.role not in ['Member', 'Trainer']:
             return jsonify({'error': 'Invalid user role'}), 403
+        
+        # Check if trainer needs to complete profile
+        needs_profile = False
+        if user.role == 'Trainer' and not user.is_active:
+            trainer = Trainer.query.filter_by(user_id=user.user_id).first()
+            needs_profile = (trainer is None)
         
         # Generate JWT token using flask-jwt-extended
         token = create_access_token(
@@ -177,7 +221,9 @@ def login():
                 'phone': user.phone,
                 'role': user.role,
                 'gender': user.gender,
-                'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None
+                'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+                'is_active': user.is_active,
+                'needs_profile': needs_profile
             }
         }), 200
         
@@ -190,20 +236,18 @@ def login():
 def verify_token():
     """
     Verify if the JWT token is valid and return user info
-    Used by frontend to check authentication status
-    
-    Headers:
-    Authorization: Bearer <token>
     """
     try:
-        # Get current user ID from token
         user_id = get_jwt_identity()
-        
-        # Get user from database
-        user = User.query.filter_by(user_id=user_id, is_active=True).first()
+        user = User.query.filter_by(user_id=user_id).first()
         
         if not user:
-            return jsonify({'error': 'User not found or inactive'}), 404
+            return jsonify({'error': 'User not found'}), 404
+        
+        needs_profile = False
+        if user.role == 'Trainer' and not user.is_active:
+            trainer = Trainer.query.filter_by(user_id=user.user_id).first()
+            needs_profile = (trainer is None)
         
         return jsonify({
             'valid': True,
@@ -212,7 +256,9 @@ def verify_token():
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'role': user.role
+                'role': user.role,
+                'is_active': user.is_active,
+                'needs_profile': needs_profile
             }
         }), 200
         
@@ -224,40 +270,27 @@ def verify_token():
 def admin_login():
     """
     Separate admin login endpoint
-    Admin accounts must use this endpoint specifically
-    
-    Expected JSON body:
-    {
-        "email": "admin@example.com",
-        "password": "adminpassword"
-    }
     """
     data = request.get_json()
     
-    # Validation
     if not data.get('email') or not data.get('password'):
         return jsonify({'error': 'Email and password are required'}), 400
     
     try:
-        # Find user by email
         user = User.query.filter_by(email=data['email'].lower().strip()).first()
         
         if not user:
             return jsonify({'error': 'Invalid email or password'}), 401
         
-        # Check if user is active
         if not user.is_active:
             return jsonify({'error': 'Account is deactivated'}), 403
         
-        # Verify password
         if not user.check_password(data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
         
-        # Only allow Admin role
         if user.role != 'Admin':
             return jsonify({'error': 'This endpoint is for admin accounts only'}), 403
         
-        # Generate JWT token using flask-jwt-extended
         token = create_access_token(
             identity=user.user_id,
             additional_claims={
@@ -280,25 +313,20 @@ def admin_login():
         
     except Exception as e:
         return jsonify({'error': f'Login failed: {str(e)}'}), 500
+
     
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
     """
     Get current logged-in user information
-    
-    Headers:
-    Authorization: Bearer <token>
     """
     try:
-        # Get current user ID from token
         user_id = get_jwt_identity()
-        
-        # Get user from database
-        user = User.query.filter_by(user_id=user_id, is_active=True).first()
+        user = User.query.filter_by(user_id=user_id).first()
         
         if not user:
-            return jsonify({'error': 'User not found or inactive'}), 404
+            return jsonify({'error': 'User not found'}), 404
         
         return jsonify({
             'user': {
@@ -309,7 +337,8 @@ def get_current_user():
                 'phone': user.phone,
                 'role': user.role,
                 'gender': user.gender,
-                'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None
+                'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+                'is_active': user.is_active
             }
         }), 200
         

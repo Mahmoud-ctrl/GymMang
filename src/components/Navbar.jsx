@@ -1,88 +1,115 @@
-import { useState } from 'react';
-import { Dumbbell, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Dumbbell, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Navigation = () => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  // Auth Logic
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+  const token = localStorage.getItem('token');
+  const isAuthenticated = !!(user && token);
 
+  const getBasePath = () => {
+    return user?.role ? `/${user.role.toLowerCase()}/dashboard` : '/login';
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-     <nav className="bg-white shadow-md fixed w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <Dumbbell className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">FitZone</span>
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      scrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-2' : 'bg-transparent py-4'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => window.location.href = '/'}
+          >
+            <div className="bg-blue-600 p-2 rounded-lg">
+              <Dumbbell className="h-6 w-6 text-white" />
             </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-gray-700 hover:text-blue-600 font-medium transition">Home</a>
-              <a href="#features" className="text-gray-700 hover:text-blue-600 font-medium transition">Features</a>
-              <a href="/equipments" className="text-gray-700 hover:text-blue-600 font-medium transition">Equipment</a>
-              <a href="/products" className="text-gray-700 hover:text-blue-600 font-medium transition">Store</a>
-              <a href="#about" className="text-gray-700 hover:text-blue-600 font-medium transition">About</a>
-            </div>
-
-            {/* Auth Buttons - Desktop */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button 
-                onClick={() => setShowLoginModal(true)}
-                className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium transition"
-              >
-                <a href="/login">Login</a>
-              </button>
-              <button 
-                onClick={() => window.location.href = '/register'}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition shadow-md"
-              >
-                Register
-              </button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={toggleMenu}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              FitZone
+            </span>
+          </motion.div>
+          
+          <div className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-gray-700 hover:text-blue-600 font-medium transition">Features</a>
+            <a href="/equipments" className="text-gray-700 hover:text-blue-600 font-medium transition">Equipment</a>
+            <a href="/products" className='text-gray-700 hover:text-blue-600 font-medium transition'>Products</a>
+            
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => window.location.href = getBasePath()}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+                >
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </button>
+                <button onClick={handleLogout} className="p-2 text-gray-500 hover:text-red-600 transition">
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <button onClick={() => window.location.href = '/login'} className="text-gray-700 hover:text-blue-600 font-medium">
+                  Login
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/signup'}
+                  className="px-6 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-black transition shadow-lg"
+                >
+                  Join Now
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="md:hidden py-4 border-t">
-              <div className="flex flex-col space-y-3">
-                <a href="#home" onClick={closeMenu} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Home</a>
-                <a href="#features" onClick={closeMenu} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Features</a>
-                <a href="/equipment" onClick={closeMenu} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Equipment</a>
-                <a href="/store" onClick={closeMenu} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Store</a>
-                <a href="#about" onClick={closeMenu} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">About</a>
-                <div className="flex flex-col space-y-2 px-4 pt-2">
-                  <button 
-                    onClick={() => { setShowLoginModal(true); closeMenu(); }}
-                    className="w-full py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 font-medium"
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => window.location.href = '/register'}
-                    className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                  >
-                    Register
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-gray-600">
+            {isMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
-      </nav>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white border-t overflow-hidden"
+          >
+            <div className="px-4 py-6 space-y-4">
+              {isAuthenticated && (
+                <button onClick={() => window.location.href = getBasePath()} className="block w-full text-center py-3 bg-blue-50 text-blue-600 rounded-xl font-bold">
+                  Go to Dashboard
+                </button>
+              )}
+              <a href="#features" className="block text-center text-gray-700 py-2">Features</a>
+              {!isAuthenticated && (
+                <button onClick={() => window.location.href = '/login'} className="block w-full py-3 border border-gray-200 rounded-xl">Login</button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
   );
 };
 
-
-export default Navigation;
+export default Navbar;

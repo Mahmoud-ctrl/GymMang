@@ -176,4 +176,10 @@ def notify_session_cancelled_by_member(trainer_id, class_name, session_date):
     link = "/trainer/dashboard/sessions"
     return create_notification(trainer_id, message, link)
 
+def notify_admin_new_trainer_application(admin_id, trainer_name):
+    """Create notification for new trainer application"""
+    message = f"New trainer application received from {trainer_name}."
+    link = "/admin/dashboard/trainer-management"
+    return create_notification(admin_id, message, link)
+
 

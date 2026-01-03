@@ -15,6 +15,7 @@ from blueprints.admin.admin_users import admin_users_bp
 from blueprints.admin.analytics import analytics_bp
 from blueprints.admin.orders import orders_bp
 from blueprints.admin.bookings import bookings_bp
+from blueprints.admin.admin_trainers import admin_trainers_bp
 from blueprints.members.shop import shop_bp
 from blueprints.members.cart import cart_bp
 from blueprints.members.session_cart import session_cart_bp
@@ -101,6 +102,7 @@ def uploaded_file(filename):
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(admin_users_bp)
+app.register_blueprint(admin_trainers_bp)
 app.register_blueprint(analytics_bp)
 app.register_blueprint(bookings_bp)
 app.register_blueprint(orders_bp)

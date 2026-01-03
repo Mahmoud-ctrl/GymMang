@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { User, Dumbbell, Mail, Lock, Phone, Calendar, Users, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Dumbbell, Mail, Lock, Phone, Calendar, Users, ArrowRight, CheckCircle, AlertCircle, Award, DollarSign, Briefcase, FileText } from 'lucide-react';
 
 export default function SignUpPage() {
   const [selectedRole, setSelectedRole] = useState(null);
+  const [showTrainerProfile, setShowTrainerProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [token, setToken] = useState(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -17,7 +19,17 @@ export default function SignUpPage() {
     gender: ''
   });
 
-  const API_URL = import.meta.env.VITE_REACT_APP_API;
+  const [trainerData, setTrainerData] = useState({
+    years_of_experience: '',
+    hourly_rate: '',
+    specialization: '',
+    bio: '',
+    height: '',
+    weight: '',
+    certifications: ''
+  });
+
+  const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -29,23 +41,24 @@ export default function SignUpPage() {
   };
 
   const handleBack = () => {
-    setSelectedRole(null);
-    setFormData({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      first_name: '',
-      last_name: '',
-      phone: '',
-      date_of_birth: '',
-      gender: ''
-    });
+    if (showTrainerProfile) {
+      setShowTrainerProfile(false);
+    } else {
+      setSelectedRole(null);
+      setFormData({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        date_of_birth: '',
+        gender: ''
+      });
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validation
+  const handleSubmit = async () => {
     if (formData.password !== formData.confirmPassword) {
       showNotification('Passwords do not match', 'error');
       return;
@@ -78,16 +91,19 @@ export default function SignUpPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
         
-        showNotification('Account created successfully!', 'success');
-        
-        // Redirect after short delay
-        setTimeout(() => {
-          window.location.href = selectedRole === 'Member' ? '/member/dashboard' : '/trainer/dashboard';
-        }, 1500);
+        if (selectedRole === 'Trainer') {
+          showNotification('Account created! Please complete your trainer profile.', 'success');
+          setShowTrainerProfile(true);
+        } else {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          showNotification('Account created successfully!', 'success');
+          setTimeout(() => {
+            window.location.href = '/member/dashboard';
+          }, 1500);
+        }
       } else {
         showNotification(data.error || 'Registration failed', 'error');
       }
@@ -99,9 +115,56 @@ export default function SignUpPage() {
     }
   };
 
+  const handleTrainerProfileSubmit = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/auth/trainer/complete-profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          years_of_experience: trainerData.years_of_experience ? parseInt(trainerData.years_of_experience) : undefined,
+          hourly_rate: trainerData.hourly_rate ? parseFloat(trainerData.hourly_rate) : undefined,
+          specialization: trainerData.specialization || undefined,
+          bio: trainerData.bio || undefined,
+          height: trainerData.height ? parseFloat(trainerData.height) : undefined,
+          weight: trainerData.weight ? parseFloat(trainerData.weight) : undefined,
+          certifications: trainerData.certifications || undefined
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        showNotification('Profile completed successfully!', 'success');
+        setTimeout(() => {
+          window.location.href = '/trainer/dashboard';
+        }, 1500);
+      } else {
+        showNotification(data.error || 'Failed to complete profile', 'error');
+      }
+    } catch (error) {
+      console.error('Profile completion error:', error);
+      showNotification('Network error. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleTrainerChange = (e) => {
+    setTrainerData({
+      ...trainerData,
       [e.target.name]: e.target.value
     });
   };
@@ -130,7 +193,6 @@ export default function SignUpPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Member Card */}
             <div
               onClick={() => handleRoleSelect('Member')}
               className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
@@ -174,7 +236,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Trainer Card */}
             <div
               onClick={() => handleRoleSelect('Trainer')}
               className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
@@ -232,7 +293,171 @@ export default function SignUpPage() {
     );
   }
 
-  // Registration Form Screen
+  // Trainer Profile Form
+  if (showTrainerProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        {notification && (
+          <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 ${
+            notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          } text-white`}>
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <AlertCircle className="w-5 h-5" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+          </div>
+        )}
+
+        <div className="max-w-2xl w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-purple-100">
+                <Award className="w-8 h-8 text-purple-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Trainer Profile</h2>
+              <p className="text-gray-600">Tell us about your experience and expertise</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Years of Experience
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="number"
+                      name="years_of_experience"
+                      value={trainerData.years_of_experience}
+                      onChange={handleTrainerChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                      placeholder="5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hourly Rate ($)
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="hourly_rate"
+                      value={trainerData.hourly_rate}
+                      onChange={handleTrainerChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                      placeholder="50.00"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Specialization
+                </label>
+                <input
+                  type="text"
+                  name="specialization"
+                  value={trainerData.specialization}
+                  onChange={handleTrainerChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  placeholder="e.g., Weight Training, CrossFit, Yoga"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  value={trainerData.bio}
+                  onChange={handleTrainerChange}
+                  rows="4"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  placeholder="Tell us about yourself and your training philosophy..."
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Height (cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="height"
+                    value={trainerData.height}
+                    onChange={handleTrainerChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    placeholder="180"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Weight (kg)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="weight"
+                    value={trainerData.weight}
+                    onChange={handleTrainerChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    placeholder="75"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Certifications
+                </label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <textarea
+                    name="certifications"
+                    value={trainerData.certifications}
+                    onChange={handleTrainerChange}
+                    rows="3"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    placeholder="e.g., NASM CPT, ACE, CrossFit Level 1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-6">
+                <button
+                  onClick={handleBack}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={handleTrainerProfileSubmit}
+                  disabled={loading}
+                  className="flex-1 px-6 py-3 rounded-lg text-white font-semibold bg-purple-600 hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Completing Profile...' : 'Complete Profile'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Basic Registration Form
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
       {notification && (
@@ -250,15 +475,14 @@ export default function SignUpPage() {
 
       <div className="max-w-2xl w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
               selectedRole === 'Member' ? 'bg-indigo-100' : 'bg-purple-100'
             }`}>
               {selectedRole === 'Member' ? (
-                <Dumbbell className={`w-8 h-8 ${selectedRole === 'Member' ? 'text-indigo-600' : 'text-purple-600'}`} />
+                <Dumbbell className="w-8 h-8 text-indigo-600" />
               ) : (
-                <Users className={`w-8 h-8 ${selectedRole === 'Member' ? 'text-indigo-600' : 'text-purple-600'}`} />
+                <Users className="w-8 h-8 text-purple-600" />
               )}
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -267,9 +491,7 @@ export default function SignUpPage() {
             <p className="text-gray-600">Fill in your details to get started</p>
           </div>
 
-          {/* Form */}
           <div className="space-y-6">
-            {/* Name Fields */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -308,7 +530,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address *
@@ -327,7 +548,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Password Fields */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -366,12 +586,10 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Optional Fields */}
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Optional Information</h3>
               
               <div className="space-y-4">
-                {/* Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
@@ -389,7 +607,6 @@ export default function SignUpPage() {
                   </div>
                 </div>
 
-                {/* Date of Birth and Gender */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -427,10 +644,8 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-4 pt-6">
               <button
-                type="button"
                 onClick={handleBack}
                 className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
               >
@@ -445,7 +660,7 @@ export default function SignUpPage() {
                     : 'bg-purple-600 hover:bg-purple-700'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? 'Creating Account...' : selectedRole === 'Trainer' ? 'Continue' : 'Create Account'}
               </button>
             </div>
           </div>
