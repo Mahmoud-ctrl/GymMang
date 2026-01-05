@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import Index from "./pages/Index";
 import Navigation from "./components/Navbar";
@@ -15,6 +15,8 @@ import ProductShopPage from "./pages/member/Products";
 import EquipmentPage from "./pages/member/Equipments";
 import TrainerWaitingPage from "./pages/WaitingPage";
 
+const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
+
 function isTokenExpired(token) {
   try {
     const decoded = jwtDecode(token);
@@ -23,41 +25,66 @@ function isTokenExpired(token) {
     return true;
   }
 }
-
 function ProtectedTrainerRoute({ children }) {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    const verifyTrainerStatus = async () => {
+      const token = localStorage.getItem('token');
 
-    if (!token || isTokenExpired(token)) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      navigate('/login', { replace: true });
-      return;
-    }
+      if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { replace: true });
+        return;
+      }
 
-    if (userStr) {
       try {
-        const user = JSON.parse(userStr);
+        const response = await fetch(`${API_URL}/auth/verify`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Verification failed');
+        }
+
+        const data = await response.json();
         
-        if (user.role === 'Trainer' && !user.is_active) {
+        // Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Check if trainer is inactive or needs profile
+        if (data.user.role === 'Trainer' && !data.user.is_active) {
           navigate('/trainer/waiting', { 
             replace: true,
-            state: { message: 'Please complete your trainer profile to access the dashboard' }
+            state: { message: 'Please wait for admin approval to access the dashboard' }
           });
+          return;
         }
+
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Error verifying trainer status:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login', { replace: true });
       }
-    } else {
-      navigate('/login', { replace: true });
-    }
+    };
+
+    verifyTrainerStatus();
   }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+      </div>
+    );
+  }
 
   return children;
 }

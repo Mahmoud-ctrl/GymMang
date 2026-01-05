@@ -202,24 +202,6 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 border-gray-300 rounded text-indigo-600 focus:ring-2 focus:ring-indigo-600"
-                  disabled={isLoading}
-                />
-                <span className="ml-2 text-sm text-gray-700 font-medium">Remember this device</span>
-              </label>
-              <button 
-                type="button"
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-                disabled={isLoading}
-              >
-                Need help?
-              </button>
-            </div>
 
             {/* Submit Button */}
             <button

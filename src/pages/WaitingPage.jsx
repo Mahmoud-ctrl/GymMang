@@ -1,9 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, ShieldCheck, FileSearch, Mail, LogOut, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
 
 const TrainerWaitingPage = () => {
-  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+  const navigate = useNavigate();
+  const [user, setUser] = useState(
+    localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null
+  );
+
+
+  useEffect(() => {
+    const checkTrainerStatus = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/verify`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Verification failed');
+        }
+
+        const data = await response.json();
+        
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        if (data.user.role === 'Trainer' && data.user.is_active) {
+          navigate('/trainer/dashboard', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking trainer status:', error);
+      }
+    };
+
+    checkTrainerStatus();
+    const interval = setInterval(checkTrainerStatus, 30000);
+
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
