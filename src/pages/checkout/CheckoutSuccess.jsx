@@ -6,6 +6,7 @@ export default function CheckoutSuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state?.orderData;
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
   if (!orderData) {
     return (
@@ -105,14 +106,14 @@ export default function CheckoutSuccessPage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           <button
-            onClick={() => navigate('/bookings')}
+            onClick={() => navigate(`/${user.role.toLowerCase()}/dashboard/products`)}
             className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
           >
-            View My Bookings
+            Browse More Products
             <ArrowRight className="w-5 h-5" />
           </button>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(`/${user.role.toLowerCase()}/dashboard`)}
             className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Back to Home

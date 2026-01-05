@@ -10,19 +10,6 @@ import {
 const API_URL = import.meta.env.VITE_REACT_APP_API || 'http://localhost:5000/api';
 const getToken = () => localStorage.getItem('token');
 
-// --- Reusable Layout Components ---
-const SectionHeader = ({ title, subtitle, icon: Icon }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className="p-2.5 bg-zinc-900 text-white rounded-xl shadow-lg">
-      <Icon className="w-5 h-5" />
-    </div>
-    <div>
-      <h3 className="text-sm font-black uppercase tracking-wider text-zinc-900">{title}</h3>
-      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{subtitle}</p>
-    </div>
-  </div>
-);
-
 export default function AdminBookingManagement() {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [sessions, setSessions] = useState([]);

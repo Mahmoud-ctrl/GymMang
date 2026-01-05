@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Activity, 
-  Calendar, 
-  Users, 
-  TrendingUp, 
-  Clock, 
-  DollarSign,
-  ChevronRight,
-  Dumbbell,
-  Star,
-  BookOpen,
-  BarChart3
+  Activity, Calendar, Users, TrendingUp, Clock, ChevronRight,
+  Dumbbell, Star, BookOpen, BarChart3,
+  User2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Animation Variants
 const containerVariants = {
@@ -355,23 +348,29 @@ export default function TrainerDashboard() {
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">Create Session</span>
-                  </div>
+                    <span className="font-medium text-sm">
+                     <Link to="/trainer/dashboard/my-classes"> Create Session</Link>
+                    </span>
+                  </div> 
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>
 
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
                     <BarChart3 className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">View Schedule</span>
+                    <span className="font-medium text-sm">
+                      <Link to="/trainer/dashboard/schedule">View Schedule</Link>
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>
 
                 <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                   <div className="flex items-center gap-3">
-                    <Dumbbell className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
-                    <span className="font-medium text-sm">Manage Classes</span>
+                    <User2 className="w-5 h-5 text-gray-500 group-hover:text-indigo-600" />
+                    <span className="font-medium text-sm">
+                     <Link to="/trainer/dashboard/profile">Update Profile</Link>
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-400" />
                 </button>

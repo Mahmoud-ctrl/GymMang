@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 import Index from "./pages/Index";
 import Navigation from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -14,15 +15,25 @@ import ProductShopPage from "./pages/member/Products";
 import EquipmentPage from "./pages/member/Equipments";
 import TrainerWaitingPage from "./pages/WaitingPage";
 
-// Protected Route Component for Trainers
+function isTokenExpired(token) {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 function ProtectedTrainerRoute({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
     const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
 
-    if (!token) {
+    if (!token || isTokenExpired(token)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       navigate('/login', { replace: true });
       return;
     }
@@ -31,9 +42,7 @@ function ProtectedTrainerRoute({ children }) {
       try {
         const user = JSON.parse(userStr);
         
-        // Check if user is a trainer and profile is not active
         if (user.role === 'Trainer' && !user.is_active) {
-          // Redirect to signup page to complete profile
           navigate('/trainer/waiting', { 
             replace: true,
             state: { message: 'Please complete your trainer profile to access the dashboard' }
@@ -41,6 +50,8 @@ function ProtectedTrainerRoute({ children }) {
         }
       } catch (error) {
         console.error('Error parsing user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         navigate('/login', { replace: true });
       }
     } else {
@@ -53,9 +64,24 @@ function ProtectedTrainerRoute({ children }) {
 
 function AppContent() {
   const location = useLocation();
+  const navigate = useNavigate();
   
-  // Routes that should not show navbar and footer
-  const noLayoutRoutes = ['/login', '/signup', '/pu/admin/login', '/checkout', '/trainer/waiting'];
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      
+      const protectedRoutes = ['/dashboard', '/admin/dashboard', '/member/dashboard', '/trainer/dashboard'];
+      const isProtectedRoute = protectedRoutes.some(route => location.pathname.includes(route));
+      
+      if (isProtectedRoute) {
+        navigate('/login', { replace: true, state: { message: 'Session expired. Please login again.' } });
+      }
+    }
+  }, [location.pathname, navigate]);
+  
+  const noLayoutRoutes = ['/login', '/signup', '/pu/admin/login', '/checkout', '/checkout/success', '/trainer/waiting'];
   const isDashboardRoute = location.pathname.includes('/dashboard');
   
   const shouldShowLayout = !noLayoutRoutes.includes(location.pathname) && !isDashboardRoute;
@@ -100,7 +126,6 @@ function AppContent() {
           } 
         />
         
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

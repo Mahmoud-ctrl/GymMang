@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Search, Filter, MoreHorizontal, Mail, Phone, 
+  Users, Search, Eye, EyeOff, Mail, Phone, User,
   Calendar, Shield, Activity, UserCheck, UserX, 
-  ChevronLeft, ChevronRight, X, Briefcase, Award, Clock
+  ChevronLeft, ChevronRight, X, Briefcase, Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -375,45 +375,121 @@ function EditUserForm({ user, onSubmit, onCancel }) {
     first_name: user.first_name,
     last_name: user.last_name,
     role: user.role,
-    phone: user.phone || ''
+    phone: user.phone || '',
+    password: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = () => {
+    const dataToSend = { ...formData };
+    
+    if (!dataToSend.password || dataToSend.password.trim() === '') {
+      delete dataToSend.password;
+    }
+    
+    onSubmit(dataToSend);
+  };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-xs font-bold text-zinc-500 uppercase">First Name</label>
+          <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5">
+            <User className="w-3 h-3" />
+            First Name
+          </label>
           <input 
             value={formData.first_name} 
             onChange={e => setFormData({...formData, first_name: e.target.value})}
-            className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900"
+            className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900 transition-colors"
           />
         </div>
         <div>
-          <label className="text-xs font-bold text-zinc-500 uppercase">Last Name</label>
+          <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5">
+            <User className="w-3 h-3" />
+            Last Name
+          </label>
           <input 
             value={formData.last_name} 
             onChange={e => setFormData({...formData, last_name: e.target.value})}
-            className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900"
+            className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900 transition-colors"
           />
         </div>
       </div>
 
       <div>
-        <label className="text-xs font-bold text-zinc-500 uppercase">Phone</label>
+        <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5">
+          <Phone className="w-3 h-3" />
+          Phone
+        </label>
         <input 
           value={formData.phone} 
           onChange={e => setFormData({...formData, phone: e.target.value})}
-          className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900"
+          className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900 transition-colors"
+          placeholder="Enter phone number"
         />
       </div>
 
+      {/* Current Password Display */}
+      <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+        <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5 mb-2">
+          <Lock className="w-3 h-3" />
+          Current Password
+        </label>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 font-mono text-sm text-zinc-400">
+            ••••••••••••
+          </div>
+          <span className="text-[10px] bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded font-bold uppercase">
+            Hidden
+          </span>
+        </div>
+        <p className="text-[10px] text-zinc-400 mt-2">
+          For security, current password cannot be displayed
+        </p>
+      </div>
+
+      {/* New Password Input with Toggle */}
       <div>
-        <label className="text-xs font-bold text-zinc-500 uppercase">Role</label>
+        <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5">
+          <Lock className="w-3 h-3" />
+          New Password (Optional)
+        </label>
+        <div className="relative mt-1">
+          <input 
+            type={showPassword ? "text" : "password"}
+            value={formData.password} 
+            onChange={e => setFormData({...formData, password: e.target.value})}
+            placeholder="Leave blank to keep current password"
+            className="w-full p-2 pr-10 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900 transition-colors"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-zinc-100 rounded transition-colors"
+          >
+            {showPassword ? (
+              <EyeOff className="w-4 h-4 text-zinc-400" />
+            ) : (
+              <Eye className="w-4 h-4 text-zinc-400" />
+            )}
+          </button>
+        </div>
+        <p className="text-[10px] text-zinc-400 mt-1">
+          Leave blank to keep the current password. Minimum 6 characters if changing.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-1.5">
+          <Shield className="w-3 h-3" />
+          Role
+        </label>
         <select 
           value={formData.role} 
           onChange={e => setFormData({...formData, role: e.target.value})}
-          className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900"
+          className="w-full mt-1 p-2 bg-zinc-50 border border-zinc-200 rounded text-sm outline-none focus:border-zinc-900 transition-colors"
         >
           <option value="Member">Member</option>
           <option value="Trainer">Trainer</option>
@@ -424,9 +500,19 @@ function EditUserForm({ user, onSubmit, onCancel }) {
         </p>
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <button onClick={onCancel} className="flex-1 py-2.5 text-sm font-semibold text-zinc-500 hover:text-zinc-900">Cancel</button>
-        <button onClick={() => onSubmit(formData)} className="flex-1 py-2.5 bg-zinc-900 text-white rounded text-sm font-bold">Save Changes</button>
+      <div className="flex gap-3 pt-4 border-t border-zinc-100 mt-6">
+        <button 
+          onClick={onCancel} 
+          className="flex-1 py-2.5 text-sm font-semibold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={handleSubmit} 
+          className="flex-1 py-2.5 bg-zinc-900 text-white rounded text-sm font-bold hover:bg-zinc-800 transition-colors"
+        >
+          Save Changes
+        </button>
       </div>
     </div>
   );

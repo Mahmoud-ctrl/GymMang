@@ -167,13 +167,13 @@ def notify_session_cancelled(user_id, class_name, session_date):
 def notify_new_booking(trainer_id, class_name, session_date, member_username):
     """Create notification for new booking"""
     message = f"{member_username} has booked your {class_name} session on {session_date}."
-    link = "/trainer/dashboard/sessions"
+    link = "/trainer/dashboard/my-classes"
     return create_notification(trainer_id, message, link)
 
 def notify_session_cancelled_by_member(trainer_id, class_name, session_date):
     """Create notification when a member cancels a booking"""
     message = f"A member has cancelled their booking for your {class_name} session on {session_date}."
-    link = "/trainer/dashboard/sessions"
+    link = "/trainer/dashboard/my-classes"
     return create_notification(trainer_id, message, link)
 
 def notify_admin_new_trainer_application(admin_id, trainer_name):

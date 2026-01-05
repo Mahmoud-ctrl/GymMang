@@ -37,6 +37,14 @@ export default function NotificationBell() {
           'Content-Type': 'application/json'
         }
       });
+
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        setUnreadCount(0);
+        return;
+      }
+
       const data = await res.json();
       if (data.success) {
         setUnreadCount(data.count);

@@ -208,57 +208,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section className="py-24 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-4 grid-rows-2 gap-4 h-[600px]">
-            <motion.div 
-              {...fadeInUp}
-              className="lg:col-span-2 bg-blue-600 rounded-[2rem] p-8 flex flex-col justify-end group cursor-pointer"
-            >
-              <Star className="text-white/20 h-20 w-20 absolute top-8 right-8 group-hover:rotate-12 transition-transform" />
-              <h3 className="text-3xl font-bold mb-2">5-Star Community</h3>
-              <p className="text-blue-100">Join a network of 10k+ members supporting each other daily.</p>
-            </motion.div>
-            
-            <motion.div 
-              {...fadeInUp}
-              className="lg:col-span-1 bg-gray-800 rounded-[2rem] p-8 flex flex-col justify-center items-center text-center"
-            >
-              <div className="text-5xl font-black text-blue-500 mb-2">24/7</div>
-              <p className="text-gray-400">Door Access Anytime</p>
-            </motion.div>
-
-            <motion.div 
-              {...fadeInUp}
-              className="lg:col-span-1 lg:row-span-2 bg-indigo-500 rounded-[2rem] p-8 relative overflow-hidden"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=800&fit=crop" 
-                className="absolute inset-0 w-full h-full object-cover opacity-50 hover:scale-110 transition-transform duration-700"
-                alt="Trainer"
-              />
-              <div className="relative z-10 h-full flex flex-col justify-end">
-                <h3 className="text-2xl font-bold">Expert Coaching</h3>
-                <p className="text-sm text-indigo-100">Pro guidance in every rep.</p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              {...fadeInUp}
-              className="lg:col-span-3 bg-gray-900 text-white rounded-[2rem] p-8 flex items-center justify-between"
-            >
-              <div>
-                <h3 className="text-3xl font-black">Ready to burn 500 calories?</h3>
-                <p className="text-gray-500">Our HIIT classes start every 30 minutes.</p>
-              </div>
-              <button className="bg-gray-900 text-white p-4 rounded-full hover:scale-110 transition">
-                <ArrowRight />
-              </button>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* Modern CTA */}
       <section className="py-20 px-4">
         <motion.div 
@@ -268,8 +217,11 @@ const LandingPage = () => {
         >
           <div className="relative z-10">
             <h2 className="text-4xl lg:text-6xl font-bold text-white mb-8">Ready to Level Up?</h2>
-            <button className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-xl hover:bg-blue-50 transition shadow-2xl">
-              JOIN THE TRIBE
+            <button 
+              className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-xl hover:bg-blue-50 transition shadow-2xl"
+              onClick={() => window.location.href = '/login'}
+            >
+              JOIN NOW
             </button>
           </div>
           {/* Decorative Circle */}

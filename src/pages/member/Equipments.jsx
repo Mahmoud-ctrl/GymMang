@@ -525,18 +525,6 @@ export default function EquipmentPage() {
                       </div>
                     </div>
 
-                    {/* Inquiry Button */}
-                    <div className="mb-10">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => window.location.href = `mailto:sales@gym.com?subject=Inquiry: ${selectedEquipment.name}`}
-                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3"
-                      >
-                        <span>Inquire About Pricing</span>
-                      </motion.button>
-                    </div>
-
                     {/* --- REVIEWS SECTION --- */}
                     <div className="border-t border-gray-100 pt-8">
                        <div className="flex items-center justify-between mb-6">

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Lock, Mail, Dumbbell, AlertCircle } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,41 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('');
 
   const API_URL = import.meta.env.VITE_REACT_APP_API;
+
+  // Check if token exists and is valid on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+
+    if (token && userStr) {
+      try {
+        const decoded = jwtDecode(token);
+        const isExpired = decoded.exp * 1000 < Date.now();
+
+        if (!isExpired) {
+          // Token is valid, redirect based on role
+          const user = JSON.parse(userStr);
+          
+          if (user.role === 'Trainer') {
+            window.location.href = '/trainer/dashboard';
+          } else if (user.role === 'Member') {
+            window.location.href = '/member/dashboard';
+          } else if (user.role === 'Admin') {
+            window.location.href = '/admin/dashboard';
+          }
+        } else {
+          // Token expired, clean up
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        // Invalid token, clean up
+        console.error('Invalid token:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +82,8 @@ export default function LoginPage() {
             window.location.href = '/trainer/dashboard';
           } else if (data.user.role === 'Member') {
             window.location.href = '/member/dashboard';
+          } else if (data.user.role === 'Admin') {
+            window.location.href = '/admin/dashboard';
           }
         }, 1000);
       } else {
@@ -196,25 +234,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 border-zinc-300 rounded text-zinc-900 focus:ring-2 focus:ring-zinc-900"
-                  disabled={isLoading}
-                />
-                <span className="ml-2 text-sm text-zinc-700">Remember me</span>
-              </label>
-              <button 
-                type="button"
-                className="text-sm font-medium text-zinc-900 hover:text-zinc-700"
-                disabled={isLoading}
-              >
-                Forgot password?
-              </button>
             </div>
 
             {/* Submit Button */}

@@ -101,7 +101,7 @@ const Dashboard = () => {
 
   const handleSignOut = () => {
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('access_token');
+      window.localStorage.removeItem('token');
       window.localStorage.removeItem('user');
     }
     window.location.href = '/login';
@@ -204,7 +204,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {user.role === "Member" && (
+      {(user.role === "Member" || user.role === "Trainer") && (
         <div className="fixed z-[100]">
           <BMICalculator />
         </div>

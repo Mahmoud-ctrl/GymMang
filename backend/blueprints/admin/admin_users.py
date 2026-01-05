@@ -153,7 +153,6 @@ def get_user_detail(user_id):
     except Exception as e:
         return jsonify({'error': f'Failed to fetch user details: {str(e)}'}), 500
 
-
 @admin_users_bp.route('/<user_id>', methods=['PUT'])
 @jwt_required()
 def update_user(user_id):
@@ -184,6 +183,12 @@ def update_user(user_id):
             user.role = data['role']
         if 'is_active' in data:
             user.is_active = bool(data['is_active'])
+        
+        # Update password if provided
+        if 'password' in data:
+            if not data['password'] or len(data['password'].strip()) < 6:
+                return jsonify({'error': 'Password must be at least 6 characters'}), 400
+            user.set_password(data['password'])
 
         user.updated_at = datetime.utcnow()
         db.session.commit()

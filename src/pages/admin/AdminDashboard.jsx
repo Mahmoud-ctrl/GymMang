@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, DollarSign, ShoppingBag, Calendar, 
   AlertTriangle, TrendingUp, Package, ArrowRight,
-  UserPlus, FileText, Settings
+  UserPlus, FileText, Settings, Dumbbell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -200,28 +200,28 @@ export default function AdminDashboard() {
               <h3 className="text-sm font-black text-zinc-400 uppercase tracking-widest mb-4">Quick Actions</h3>
               <div className="space-y-2">
                 <QuickActionLink 
-                  to="/admin/trainers" 
+                  to="/admin/dashboard/trainer-management" 
                   icon={UserPlus} 
                   label="Approve Trainers" 
                   desc="Manage staff access"
                 />
                 <QuickActionLink 
-                  to="/admin/products" 
+                  to="/admin/dashboard/product-manager" 
                   icon={Package} 
-                  label="Update Inventory" 
+                  label="Update Products" 
                   desc="Add or edit products"
                 />
                 <QuickActionLink 
-                  to="/admin/orders" 
-                  icon={FileText} 
-                  label="Review Orders" 
-                  desc="View recent transactions"
+                  to="/admin/dashboard/equipment-manager" 
+                  icon={Dumbbell} 
+                  label="Update Equipments" 
+                  desc="Add or edit equipments"
                 />
                  <QuickActionLink 
-                  to="/admin/settings" 
-                  icon={Settings} 
-                  label="System Settings" 
-                  desc="Configure platform"
+                  to="/admin/dashboard/orders" 
+                  icon={FileText} 
+                  label="View Orders" 
+                  desc="Manage customer orders"
                 />
               </div>
             </motion.div>
