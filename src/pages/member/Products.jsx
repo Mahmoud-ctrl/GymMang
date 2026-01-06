@@ -458,7 +458,7 @@ export default function ProductShopPage() {
                  <p className="text-gray-500 mb-6">You must be signed in to add items to the cart or rate products.</p>
                  <div className="flex gap-3">
                    <button onClick={() => setShowLoginPrompt(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
-                   <button className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-indigo-600 transition-colors">Sign In</button>
+                   <button onClick={() => window.location.href = '/login'} className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-indigo-600 transition-colors">Sign In</button>
                  </div>
               </motion.div>
            </motion.div>

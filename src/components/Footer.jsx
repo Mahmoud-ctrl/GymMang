@@ -28,23 +28,6 @@ const Footer = () => {
               <SocialLink icon={Facebook} href="#" />
             </div>
           </div>
-
-          {/* Newsletter Input */}
-          <div className="lg:pl-10">
-            <h3 className="text-white font-black uppercase tracking-wide mb-4">Join the movement</h3>
-            <p className="text-sm mb-4 text-zinc-500">Get the latest workout tips and shop discounts.</p>
-            <div className="relative max-w-md">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="w-full bg-zinc-800/50 border border-zinc-700 text-white pl-12 pr-14 py-4 rounded-2xl focus:ring-2 focus:ring-white/20 focus:border-white outline-none transition-all placeholder:text-zinc-600 font-bold"
-              />
-              <button className="absolute right-2 top-2 bottom-2 aspect-square bg-white text-zinc-900 rounded-xl flex items-center justify-center hover:bg-zinc-200 transition-colors">
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* --- Middle Section: Links Grid --- */}
